@@ -47,7 +47,7 @@ namespace Da3m.Controllers
             public async Task<IActionResult> Create(PatientDetail patient)
             {
             ModelState.Remove("User");
-            if (ModelState.IsValid)
+            if (ModelState.IsValid )
             {
 
                 foreach (var error in ModelState.Values.SelectMany(x => x.Errors))
