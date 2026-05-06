@@ -1,10 +1,11 @@
-﻿@model Da3m.Domain.Measurement
+﻿@model  Da3m.Domain.Measurement
 @{
     ViewData["Title"] = "إضافة قياس";
     bool isPatient = ViewBag.PatientId != null;
+    bool isAdmin = User.IsInRole("Admin");
 }
 
-@if (isPatient)
+@if (isPatient || isAdmin)
 {
     <div class="alert alert-info mb-3">
         <i class="bi bi-person-check me-2"></i>

@@ -14,6 +14,7 @@ namespace Da3m.Domain
         [Required]
         [MaxLength(100)]
         public string CompanyName { get; set; } = null!;
+        public bool IsDeletd { get; set; } = false;
 
         [MaxLength(50)]
         public string? CommercialRegister { get; set; }

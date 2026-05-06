@@ -1,6 +1,14 @@
 ﻿@model IEnumerable<Da3m.Domain.VisitReport>
 @{
     ViewData["Title"] = "تقارير الزيارات";
+    
+    var role = ViewBag.CurrentRole as string ?? "";
+    bool isDoctor = role.ToLower() == "doctor" || role == "طبيب";
+    
+    bool isAdmin = ViewBag.CurrentRole?.ToString()
+                       .ToLower() == "admin"
+                || ViewBag.CurrentRole?.ToString() == "مدير";
+
     var centersDict = ViewData["CentersDict"]
                       as Dictionary<int, string>;
     var matchesDict = ViewData["MatchesDict"]
@@ -9,14 +17,17 @@
 
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h2><i class="bi bi-file-medical-fill me-2"></i>
+        <h2>
+            <i class="bi bi-file-medical-fill me-2"></i>
             تقارير الزيارات
         </h2>
         <p>سجل جميع زيارات المرضى للمراكز</p>
     </div>
+    @if(isDoctor || isAdmin){
     <a asp-action="Create" class="btn btn-primary">
         <i class="bi bi-plus-lg me-1"></i> إضافة تقرير
     </a>
+    }
 </div>
 
 @if (TempData["Success"] != null)
@@ -42,6 +53,7 @@ else
             <thead>
                 <tr>
                     <th>#</th>
+                    @* <th>المريض</th> *@
                     <th>المطابقة</th>
                     <th>المركز</th>
                     <th>ملاحظات الطبيب</th>
@@ -69,7 +81,7 @@ else
                         <td>
                             <span class="badge-status"
                                   style="background:#E0F7FA;
-                                         color:#00838F">
+                                color:#00838F">
                                 <i class="bi bi-shuffle me-1"></i>
                                 @mName
                             </span>
@@ -77,7 +89,7 @@ else
                         <td>
                             <span class="badge-status"
                                   style="background:#E3F2FD;
-                                         color:#1565C0">
+                                color:#1565C0">
                                 <i class="bi bi-hospital me-1"></i>
                                 @cName
                             </span>
@@ -90,9 +102,9 @@ else
                         <td>
                             <div class="d-flex gap-1">
                                 <a asp-action="Edit"
-                                   asp-route-id="@report.ReportId"
-                                   class="btn btn-sm btn-outline-warning"
-                                   title="تعديل">
+                                       asp-route-id="@report.ReportId"
+                                       class="btn btn-sm btn-outline-warning"
+                                       title="تعديل">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <form asp-action="Delete"

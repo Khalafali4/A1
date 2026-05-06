@@ -12,6 +12,7 @@ namespace Da3m.Domain
         public int MatchId { get; set; }
 
         public int UserId { get; set; }
+        public bool IsDeletd { get; set; } = false;
 
         public int DeviceId { get; set; }
 

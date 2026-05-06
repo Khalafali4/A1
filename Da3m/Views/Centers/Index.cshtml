@@ -1,6 +1,8 @@
 ﻿@model IEnumerable<Da3m.Domain.Center>
 @{
     ViewData["Title"] = "المراكز";
+    var role = ViewBag.CurrentRole as string ?? "";
+    bool isAdmin = role.ToLower() == "admin" || role == "مدير";
 }
 
 <div class="page-header d-flex justify-content-between align-items-center">
@@ -8,9 +10,12 @@
         <h2><i class="bi bi-hospital-fill me-2"></i>المراكز</h2>
         <p>إدارة مراكز الدعم والتأهيل</p>
     </div>
-    <a asp-action="Create" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> إضافة مركز
-    </a>
+    @if (isAdmin)
+    {
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> إضافة مركز
+        </a>
+    }
 </div>
 
 @if (TempData["Success"] != null)
@@ -51,12 +56,12 @@ else
                         <td>
                             <div class="d-flex align-items-center gap-2">
                                 <div style="width:36px;height:36px;
-                                            background:#E3F2FD;
-                                            border-radius:8px;
-                                            display:flex;
-                                            align-items:center;
-                                            justify-content:center;
-                                            color:#1565C0">
+                                    background:#E3F2FD;
+                                    border-radius:8px;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    color:#1565C0">
                                     <i class="bi bi-hospital"></i>
                                 </div>
                                 <span class="fw-bold">
@@ -71,7 +76,7 @@ else
                             {
                                 <span class="badge-status"
                                       style="background:#E8F5E9;
-                                             color:#2E7D32">
+                                    color:#2E7D32">
                                     <i class="bi bi-check-circle me-1"></i>
                                     نشط
                                 </span>
@@ -80,34 +85,41 @@ else
                             {
                                 <span class="badge-status"
                                       style="background:#FFEBEE;
-                                             color:#C62828">
+                                    color:#C62828">
                                     <i class="bi bi-x-circle me-1"></i>
                                     غير نشط
                                 </span>
                             }
                         </td>
                         <td>
-                            <div class="d-flex gap-1">
-                                <a asp-action="Edit"
-                                   asp-route-id="@center.CenterId"
-                                   class="btn btn-sm btn-outline-warning"
-                                   title="تعديل">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form asp-action="Delete"
-                                      asp-route-id="@center.CenterId"
-                                      method="post"
-                                      style="display:inline"
-                                      onsubmit="return confirm(
-                                    'هل أنت متأكد من الحذف؟')">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit"
-                                            class="btn btn-sm btn-outline-danger"
-                                            title="حذف">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
+                            @if (isAdmin)
+                            {
+                                <div class="d-flex gap-1">
+                                    <a asp-action="Edit"
+                                           asp-route-id="@center.CenterId"
+                                           class="btn btn-sm btn-outline-warning"
+                                           title="تعديل">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form asp-action="Delete"
+                                          asp-route-id="@center.CenterId"
+                                          method="post"
+                                          style="display:inline"
+                                          onsubmit="return confirm(
+                                        'هل أنت متأكد من الحذف؟')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="حذف">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted">صلاحية محددة (●'◡'●)</span>
+                            }
                         </td>
                     </tr>
                 }

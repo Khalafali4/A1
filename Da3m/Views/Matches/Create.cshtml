@@ -1,169 +1,323 @@
 ﻿@model Da3m.Domain.Match
-@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "إضافة مطابقة";
-    decimal pct = ViewBag.Percentage != null ? (decimal)ViewBag.Percentage : 0m;
-    string color = pct >= 80 ? "#2E7D32" : pct >= 60 ? "#E65100" : "#C62828";
-    string bg    = pct >= 80 ? "#E8F5E9" : pct >= 60 ? "#FFF3E0" : "#FFEBEE";
-    string label = pct >= 80 ? "مطابقة ممتازة" : pct >= 60 ? "مطابقة جيدة" : "مطابقة ضعيفة";
 
-    var patients = ViewData["Patients"] as IEnumerable<Da3m.Domain.User>;
-    var devices  = ViewData["Devices"]  as IEnumerable<Da3m.Domain.Prostheses>;
+    var patients = ViewData["Patients"]
+        as IEnumerable<Da3m.Domain.User>
+        ?? new List<Da3m.Domain.User>();
 
-    int selPatient = Model?.UserId   ?? 0;
-    int selDevice  = Model?.DeviceId ?? 0;
+    var devices = ViewData["Devices"]
+        as IEnumerable<Da3m.Domain.Prostheses>
+        ?? new List<Da3m.Domain.Prostheses>();
+
+    var measurements = ViewBag.PatientMeasurements
+        as List<Da3m.Domain.Measurement>
+        ?? new List<Da3m.Domain.Measurement>();
+
+    int selPatient     = Model?.UserId   ?? 0;
+    int selDevice      = Model?.DeviceId ?? 0;
+    int selMeasurement = (int)(ViewBag.SelectedMeasurementId ?? 0);
+
+    decimal pct = ViewBag.Percentage != null
+        ? (decimal)ViewBag.Percentage : 0m;
+
+    string status = pct >= 99 ? "تطابق ممتاز"
+                  : pct >= 95 ? "جيد جداً"
+                  : pct >= 90 ? "جيد"
+                  : pct >= 85 ? "مقبول"
+                  : pct > 0   ? "تطابق ضعيف" : "";
+
+    string color  = pct >= 99 ? "#1B5E20"
+                  : pct >= 95 ? "#2E7D32"
+                  : pct >= 90 ? "#558B2F"
+                  : pct >= 85 ? "#E65100"
+                  : pct > 0   ? "#C62828" : "#1565C0";
+
+    string bg     = pct >= 99 ? "#E8F5E9"
+                  : pct >= 95 ? "#F1F8E9"
+                  : pct >= 90 ? "#F9FBE7"
+                  : pct >= 85 ? "#FFF3E0"
+                  : pct > 0   ? "#FFEBEE" : "#E3F2FD";
+
+    bool noMatch = (bool)(ViewBag.NoMatch ?? false);
 }
 
 <div class="page-header">
-    <h2><i class="bi bi-shuffle me-2"></i>إضافة مطابقة جديدة</h2>
+    <h2><i class="bi bi-shuffle me-2"></i>إضافة مطابقة</h2>
     <p>طابق مريضاً بجهاز تعويضي مناسب</p>
 </div>
 
-<div class="da3m-table p-4" style="max-width:650px">
+<div class="da3m-table p-4" style="max-width:700px">
     <form asp-action="Create" method="post">
         @Html.AntiForgeryToken()
 
-        <!-- المريض -->
-        <!-- المريض -->
+        <!-- hidden values -->
+        <input type="hidden" id="hPatient"
+               value="@selPatient" />
+        <input type="hidden" id="hDevice"
+               value="@selDevice" />
+        <input type="hidden" id="hMeasurement"
+               value="@selMeasurement" />
+
+        <!-- 1. المريض -->
         <div class="mb-3">
-            <label class="form-label fw-bold">المريض</label>
+            <label class="form-label fw-bold">
+                <span class="badge-status me-1"
+                      style="background:#E3F2FD;
+                             color:#1565C0">1</span>
+                المريض
+            </label>
 
             @if (ViewBag.IsPatient == true)
             {
-                <!-- ✅ المريض — يظهر اسمه فقط بدون اختيار -->
                 <div class="alert alert-info py-2">
                     <i class="bi bi-person-check me-2"></i>
                     <strong>@ViewBag.PatientName</strong>
                 </div>
                 <input type="hidden" name="UserId"
-                       value="@Model.UserId" />
+                       value="@selPatient" />
             }
             else
             {
-                <!-- Admin + Doctor — يختار المريض -->
                 <select name="UserId" class="form-select"
-                        onchange="this.form.submit()">
+                        onchange="changePatient(this.value)">
                     <option value="">-- اختر المريض --</option>
-                    @if (ViewData["Patients"] != null)
+                    @foreach (var u in patients)
                     {
-                        foreach (var u in ViewData["Patients"]
-                            as IEnumerable<Da3m.Domain.User>)
+                        if (u.UserId == selPatient)
                         {
-                            if (u.UserId == selPatient)
-                            {
-                                <option value="@u.UserId" selected>
-                                    @u.FullName
-                                </option>
-                            }
-                            else
-                            {
-                                <option value="@u.UserId">
-                                    @u.FullName
-                                </option>
-                            }
+                            <option value="@u.UserId" selected>
+                                @u.FullName
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@u.UserId">
+                                @u.FullName
+                            </option>
                         }
                     }
                 </select>
             }
         </div>
 
-        <!-- الجهاز -->
-        @{
-            var measurements = ViewBag.PatientMeasurements as List<Da3m.Domain.Measurement> ?? new List<Da3m.Domain.Measurement>();
-            int selMeasurement = ViewBag.SelectedMeasurementId ?? 0;
-        }
-        @if (measurements.Any())
+        <!-- 2. المقاس -->
+        @if (selPatient > 0)
         {
             <div class="mb-3">
                 <label class="form-label fw-bold">
-                    المقاس المستخدم للمطابقة
+                    <span class="badge-status me-1"
+                          style="background:#E3F2FD;
+                                 color:#1565C0">2</span>
+                    المقاس
                 </label>
-                <select name="measurementId" class="form-select"
-                        onchange="this.form.submit()">
-                    <option value="">-- اختر المقاس --</option>
-                    @foreach (Da3m.Domain.Measurement m in measurements)
+                @if (measurements.Any())
+                {
+                    <select name="measurementId"
+                            class="form-select"
+                            onchange="changeMeasurement(this.value)">
+                        <option value="">-- اختر المقاس --</option>
+                        @foreach (var m in measurements)
+                        {
+                            var txt = m.LimbType + " — "
+                                + m.LengthCm + "×"
+                                + m.WidthCm + " cm — "
+                                + m.MeasuredAt.ToString("yyyy/MM/dd");
+
+                            if (m.MeasurementId == selMeasurement)
+                            {
+                                <option value="@m.MeasurementId"
+                                        selected>
+                                    @txt
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@m.MeasurementId">
+                                    @txt
+                                </option>
+                            }
+                        }
+                    </select>
+                    <small class="text-muted">
+                        مرتبة من الأحدث للأقدم
+                    </small>
+                }
+                else
+                {
+                    <div class="alert alert-warning py-2">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        لا توجد مقاسات —
+                        <a asp-controller="Measurements"
+                               asp-action="Create">
+                            أضف مقاساً أولاً
+                        </a>
+                    </div>
+                }
+            </div>
+
+            <!-- ✅ 3. الجهاز — هنا كان ناقصاً -->
+            @if (selMeasurement > 0)
+            {
+                <div class="mb-3">
+                    <label class="form-label fw-bold">
+                        <span class="badge-status me-1"
+                              style="background:#E3F2FD;
+                        color:#1565C0">3</span>
+                        الجهاز التعويضي المتاح
+                    </label>
+
+                    @if (devices.Any())
                     {
-                        var txt = m.LimbType + " — "
-                            + m.LengthCm + "×" + m.WidthCm
-                            + " cm — "
-                            + m.MeasuredAt.ToString("yyyy/MM/dd");
+                        <select name="DeviceId"
+                                class="form-select"
+                                onchange="changeDevice(this.value)">
+                            <option value="">-- اختر الجهاز --</option>
+                            @foreach (var d in devices)
+                            {
+                                var txt = d.LimbType + " — "
+                                    + d.LengthCm + "×"
+                                    + d.WidthCm + " cm ("
+                                    + (d.Condition ?? "—") + ")";
 
-                        if (m.MeasurementId == selMeasurement)
-                        {
-                            <option value="@m.MeasurementId"
-                                    selected>
-                                @txt (الأحدث)
-                            </option>
-                        }
-                        else
-                        {
-                            <option value="@m.MeasurementId">
-                                @txt
-                            </option>
-                        }
+                                if (d.DeviceId == selDevice)
+                                {
+                                    <option value="@d.DeviceId"
+                                            selected>
+                                        @txt
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@d.DeviceId">
+                                        @txt
+                                    </option>
+                                }
+                            }
+                        </select>
                     }
-                </select>
-                <small class="text-muted">
-                    <i class="bi bi-info-circle me-1"></i>
-                    المقاسات مرتبة من الأحدث للأقدم
-                </small>
-            </div>
-        }
-        else if (selPatient > 0)
-        {
-            <div class="alert alert-warning">
-                <i class="bi bi-exclamation-triangle me-2"></i>
-                لا توجد مقاسات لهذا المريض —
-                <a asp-controller="Measurements"
-                       asp-action="Create">
-                    أضف مقاساً أولاً
-                </a>
-            </div>
-        }
-
-        <!-- نسبة المطابقة -->
-        @if (pct > 0)
-        {
-            <!-- نسبة المطابقة -->
-            <div class="mb-4 p-3 rounded text-center"
-                 style="background:@bg">
-                <div style="font-size:3rem;font-weight:900;color:@color">
-                    @pct%
+                    else
+                    {
+                        <div class="alert alert-warning py-2">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            لا توجد أجهزة متاحة حالياً
+                        </div>
+                    }
                 </div>
-                <div style="font-weight:700;color:@color">@label</div>
-            </div>
-            <input type="hidden" name="MatchPercentage" value="@pct" />
-            <div class="d-flex gap-2">
-                <button type="submit" name="action"
-                        value="save" class="btn btn-primary">
-                    <i class="bi bi-check-lg me-1"></i> حفظ المطابقة
-                </button>
-                <a asp-action="Index" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-right me-1"></i> رجوع
+            }
+            <!-- 4. نسبة المطابقة -->
+            @if (noMatch)
+            {
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle me-2"></i>
+                    <strong>لا يوجد تطابق</strong> —
+                    نوع الطرف لا يتوافق مع هذا الجهاز
+                </div>
+                <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-right me-1"></i>
+                    رجوع
                 </a>
-            </div>
-        }
-        else if (selPatient > 0 && selDevice > 0)
-        {
-            <!-- ✅ رسالة عدم التطابق -->
-            <div class="alert alert-danger">
-                <i class="bi bi-x-circle me-2"></i>
-                <strong>لا يوجد تطابق</strong> —
-                نوع الطرف المطلوب للمريض لا يتوافق مع هذا الجهاز
-            </div>
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-right me-1"></i> رجوع
-            </a>
+            }
+            else if (pct > 0)
+            {
+                <div class="mb-4 p-3 rounded text-center"
+                     style="background:@bg">
+                    <div style="font-size:3rem;
+                        font-weight:900;
+                        color:@color">
+                        @pct%
+                    </div>
+                    <div style="font-weight:700;
+                        color:@color;
+                        font-size:1.1rem">
+                        @status
+                    </div>
+                </div>
+
+                <input type="hidden" name="MatchPercentage"
+                       value="@pct" />
+
+                <div class="d-flex gap-2">
+                    <button type="submit" name="action"
+                            value="save"
+                            class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>
+                        حفظ المطابقة
+                    </button>
+                    <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-right me-1"></i>
+                        رجوع
+                    </a>
+                </div>
+            }
+            else if (selMeasurement > 0 && selDevice > 0)
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-calculator me-2"></i>
+                    جاري حساب نسبة المطابقة...
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    اختر المقاس والجهاز لحساب النسبة
+                </div>
+                <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-right me-1"></i>
+                    رجوع
+                </a>
+            }
         }
         else
         {
             <div class="alert alert-info">
                 <i class="bi bi-info-circle me-2"></i>
-                اختر المريض والجهاز لحساب النسبة تلقائياً
+                اختر المريض أولاً
             </div>
-            <a asp-action="Index" class="btn btn-outline-secondary">
+            <a asp-action="Index"
+                   class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-right me-1"></i> رجوع
             </a>
         }
     </form>
 </div>
+
+@section Scripts {
+    <script>
+        function changePatient(id) {
+            if (!id) return;
+            window.location.href =
+                '/Matches/Create?userId=' + id;
+        }
+
+        function changeMeasurement(id) {
+            if (!id) return;
+            var patientId = document.getElementById('hPatient').value;
+                //.getElementsByName("UserId")[0]?.value ||'selPatient';
+            var deviceId  = document.getElementById('hDevice').value;
+                //.getElementsByName("DeviceId")[0]?.value || 'selDevice';
+            window.location.href =
+                '/Matches/Create' +
+                '?userId='        +patientId +
+                '&deviceId='      + deviceId +
+                '&measurementId=' + id;
+        }
+
+        function changeDevice(id) {
+            if (!id) return;
+            var patientId     = document.getElementById('hPatient').value;
+                //.getElementByName("UserId")[0]?.value ||'selPatient';
+            var measurementId = document.getElementById('hMeasurement').value;
+               // .getElementName("measurementId")[0]?.value ||'selMeasurement';
+            window.location.href =
+                '/Matches/Create' +
+                '?userId='        + patientId +//userId +
+                '&deviceId='      + id +
+                '&measurementId=' + measurementId;
+        }
+    </script>
+}

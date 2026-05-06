@@ -15,6 +15,8 @@ namespace Da3m.Domain
         [MaxLength(200)]
         public string? DoctorNotes { get; set; }
 
+        public bool IsDeletd { get; set; } = false;
+
         [MaxLength(200)]
         public string? PatientFeedback { get; set; }
 

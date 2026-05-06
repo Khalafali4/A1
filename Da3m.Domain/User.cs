@@ -28,6 +28,8 @@ namespace Da3m.Domain
 
         public int RoleId { get; set; }
 
+        public bool IsDeleted { get; set; } = false;
+
         [InverseProperty("User")]
         public Doctor? Doctor { get; set; }
 

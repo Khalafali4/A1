@@ -11,6 +11,9 @@
     <a asp-action="Create" class="btn btn-primary">
         <i class="bi bi-plus-lg me-1"></i> إضافة مستخدم
     </a>
+    <a asp-action="Deleted" class="btn btn-secondary">
+        <i class="bi bi-trash me-1"></i> المستخدمون المحذوفون
+    </a>
 </div>
 
 @if (TempData["Success"] != null)
@@ -47,13 +50,17 @@ else
             <tbody>
                 @foreach (Da3m.Domain.User user in Model)
                 {
+                    var roles = ViewData["RolesDict"] as Dictionary<int, string>
+                                ?? new Dictionary<int, string>();
+                    string roleName = roles.ContainsKey(user.RoleId) ? roles[user.RoleId] : "—";
+
                     <tr>
                         <td>@user.UserId</td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
                                 <div class="user-avatar"
                                      style="width:32px;height:32px;
-                                            font-size:.8rem">
+                                    font-size:.8rem">
                                     @user.FullName.Substring(0, 1)
                                 </div>
                                 <span class="fw-bold">@user.FullName</span>
@@ -62,30 +69,25 @@ else
                         <td>@user.Email</td>
                         <td>@user.Phone</td>
                         <td>
-                            @{
-                                var roles = (Dictionary<int, string>)ViewBag.Roles;
-                                var roleName = roles.ContainsKey(user.RoleId) ? roles[user.RoleId] : "...";
-                            }
                             <span class="badge-status"
                                   style="background:#E3F2FD;
-                                         color:#1565C0">
-                                  <i class="bi bi-shield me-1"></i>@roleName
-                                @user.RoleId
+                                color:#1565C0">
+                                <i class="bi bi-shield me-1"></i>@roleName
                             </span>
                         </td>
                         <td>@user.CreatedAt.ToString("yyyy/MM/dd")</td>
                         <td>
                             <div class="d-flex gap-1">
                                 <a asp-action="Details"
-                                   asp-route-id="@user.UserId"
-                                   class="btn btn-sm btn-outline-info"
-                                   title="تفاصيل">
+                                       asp-route-id="@user.UserId"
+                                       class="btn btn-sm btn-outline-info"
+                                       title="تفاصيل">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 <a asp-action="Edit"
-                                   asp-route-id="@user.UserId"
-                                   class="btn btn-sm btn-outline-warning"
-                                   title="تعديل">
+                                       asp-route-id="@user.UserId"
+                                       class="btn btn-sm btn-outline-warning"
+                                       title="تعديل">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <form asp-action="Delete"
@@ -93,11 +95,11 @@ else
                                       method="post"
                                       style="display:inline"
                                       onsubmit="return confirm(
-                                          'هل أنت متأكد من الحذف؟')">
+                                    'هل تريد أيقاف المستخدم @user.FullName؟')">
                                     @Html.AntiForgeryToken()
                                     <button type="submit"
                                             class="btn btn-sm btn-outline-danger"
-                                            title="حذف">
+                                            title="إيقاف المستخدم @user.FullName">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>

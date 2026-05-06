@@ -57,7 +57,7 @@ namespace Da3m.Controllers
         }
 
         // ── GET: Donors/Create ──────────────
-        public IActionResult Create(int userId = 0)
+        public IActionResult Create(int userId)
             {
                 ViewData["Title"] = "إضافة متبرع";
                 var donor = new DonorDetail { UserId = userId };

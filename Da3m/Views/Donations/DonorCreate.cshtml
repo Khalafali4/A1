@@ -1,46 +1,53 @@
-﻿@{
+﻿@model Da3m.Domain.Donation
+@{
     ViewData["Title"] = "إضافة تبرع";
+    // Controller sets ViewBag.DonorUserId and ViewBag.DonorName for donor flow
+    int donorId = (int)(ViewBag.DonorUserId ?? 0);
+    string donorName = ViewBag.DonorName as string ?? "";
 }
 
 <div class="page-header">
     <h2><i class="bi bi-cash-coin me-2"></i>إضافة تبرع جديد</h2>
-    <p>شكراً لتبرعك — مساهمتك تصنع فرقاً</p>
+    <p>تسجيل التبرع باسمك</p>
 </div>
 
-<div class="da3m-table p-4" style="max-width:500px">
+<div class="da3m-table p-4" style="max-width:600px">
     <form asp-action="Create" method="post">
         @Html.AntiForgeryToken()
 
-        <!-- ✅ UserId تلقائي -->
-        <input type="hidden" name="UserId"
-               value="@ViewBag.DonorUserId" />
+        <!-- Donor info (readonly) -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">المتبرع</label>
+            <input type="text" class="form-control" value="@donorName" readonly />
+            <input asp-for="UserId" type="hidden" value="@donorId" />
+        </div>
 
         <div class="mb-3">
-            <label class="form-label fw-bold">المبلغ</label>
+            <label asp-for="Amount" class="form-label fw-bold">
+                المبلغ
+            </label>
             <div class="input-group">
-                <input name="Amount" class="form-control"
+                <input asp-for="Amount" class="form-control"
                        type="number" step="0.01"
-                       min="0.01" placeholder="0.00"
-                       required />
+                       min="0.01" placeholder="0.00" />
                 <span class="input-group-text">$</span>
             </div>
+            <span asp-validation-for="Amount"
+                  class="text-danger small"></span>
         </div>
 
         <div class="mb-4">
-            <label class="form-label fw-bold">
-                ملاحظة (اختياري)
-            </label>
-            <textarea name="Note" class="form-control"
+            <label asp-for="Note" class="form-label fw-bold">(ملاحظة اختيارية)</label>
+            <textarea asp-for="Note" class="form-control"
                       rows="3"
-                      placeholder="أي ملاحظات..."></textarea>
+                      placeholder="أي ملاحظات إضافية..."></textarea>
         </div>
 
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-check-lg me-1"></i> تبرع الآن
             </button>
-            <a asp-action="Index"
-                   class="btn btn-outline-secondary">
+            <a asp-action="Index" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-right me-1"></i> رجوع
             </a>
         </div>

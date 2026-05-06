@@ -56,18 +56,23 @@ namespace Da3m.Controllers
         {
             ViewData["Title"] = "إضافة تبرع";
 
+            // ✅ جيب فقط المستخدمين من نوع Donor
             if (IsDonor())
             {
-                // ✅ المتبرع يتبرع باسمه مباشرة
-                var userId = int.Parse(HttpContext.Session
-                    .GetString("UserId") ?? "0");
+                var userId = int.Parse(HttpContext.Session.GetString("UserId") ?? "0");
                 ViewBag.DonorUserId = userId;
+                ViewBag.DonorName = HttpContext.Session.GetString("UserName");
                 return View("DonorCreate");
             }
+            if(IsAdmin())
+            {
+                var users = await _context.Users.GetAllAsync();
+                ViewData["Users"] = users.Where(u => !u.IsDeleted).ToList();
 
-            var users = await _context.Users.GetAllAsync();
-            ViewData["Users"] = users.ToList();
-            return View();
+                return View();
+            }
+            return AccessDenied();
+
         }
 
         // ── POST: Donations/Create ──────────
@@ -98,8 +103,20 @@ namespace Da3m.Controllers
                 var donation = await _context.Donations.GetByIdAsync(id);
                 if (donation == null) return NotFound();
 
-                var users = await _context.Users.GetAllAsync();
-                ViewData["Users"] = users.ToList();
+                var roles = await _context.Roles.GetAllAsync();
+                var donorRole = roles.FirstOrDefault(r =>
+                    r.RoleName.ToLower() == "donor" || r.RoleName == "متبرع");
+               
+            if(donorRole != null)
+            {
+                var donors = await _context.Users.FindAsync(u => u.RoleId == donorRole.RoleId && !u.IsDeleted);
+                ViewData["Users"] = donors.GroupBy(u => u.UserId).Select(g => g.First()).ToList();
+            }
+            else
+            {
+                ViewData["Users"] = new List<User>();
+            }
+
                 return View(donation);
             }
 

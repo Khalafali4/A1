@@ -56,7 +56,7 @@
                 الدور
             </label>
             <select asp-for="RoleId" class="form-select"
-                    asp-items="@(new SelectList((IEnumerable<Da3m.Domain.Role>)ViewBag.Roles,"RoleId","RoleName",Model.RoleId))">
+                    asp-items="@(new SelectList((IEnumerable<Da3m.Domain.Role>)ViewBag.Roles, "RoleId", "RoleName", Model.RoleId))">
                 <option value="">-- اختر الدور --</option>
             </select>
             <span asp-validation-for="RoleId"

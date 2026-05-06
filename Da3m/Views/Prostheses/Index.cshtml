@@ -1,7 +1,14 @@
 ﻿@model IEnumerable<Da3m.Domain.Prostheses>
 @{
     ViewData["Title"] = "الأجهزة التعويضية";
-    var dict = ViewData["UsersDict"] as Dictionary<int, string>;
+    var dict = ViewData["UsersDict"] as Dictionary<int, string>
+               ?? new Dictionary<int, string>();
+    bool isAdmin = ViewBag.CurrentRole?.ToString().ToLower() == "admin"
+               || ViewBag.CurrentRole?.ToString() == "مدير";
+    bool isManufacturer = ViewBag.CurrentRole?.ToString().ToLower() == "manufacturer"
+                  || ViewBag.CurrentRole?.ToString() == "مصنع";
+    bool isDonor = ViewBag.CurrentRole?.ToString().ToLower() == "donor"
+              || ViewBag.CurrentRole?.ToString() == "متبرع";
 }
 
 <div class="page-header d-flex justify-content-between align-items-center">
@@ -60,63 +67,121 @@ else
         </div>
     </div>
 
+    <!-- الجدول -->
     <div class="da3m-table">
-        <table class="table table-hover">
+        <table class="table table-hover mb-0"
+               style="table-layout:fixed;width:100%">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>نوع الطرف</th>
-                    <th>الطول/العرض</th>
-                    <th>المادة</th>
-                    <th>الحالة</th>
-                    <th>الاتجاه</th>
-                    <th>المالك</th>
-                    <th>متاح</th>
-                    <th>الإجراءات</th>
+                    <th style="width:5%">#</th>
+                    <th style="width:14%">نوع الطرف</th>
+                    <th style="width:14%">الطول / العرض</th>
+                    <th style="width:10%">المادة</th>
+                    <th style="width:12%">الحالة</th>
+                    <th style="width:10%">الاتجاه</th>
+                    <th style="width:15%">المالك</th>
+                    <th style="width:10%">متاح</th>
+                    <th style="width:10%">الإجراءات</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (Da3m.Domain.Prostheses device in Model)
                 {
-                    var uName = "—";
-                    if (dict != null &&
-                        dict.ContainsKey(device.UserId))
-                        uName = dict[device.UserId];
+                    var uName = dict.ContainsKey(device.UserId)
+                        ? dict[device.UserId] : "—";
 
                     <tr>
                         <td>@device.DeviceId</td>
+
+                        <!-- نوع الطرف -->
                         <td>
-                            <span class="badge-status"
+                            <span class="badge-status d-block
+                                         text-center"
                                   style="background:#F3E5F5;
-                                         color:#6A1B9A">
+                                         color:#6A1B9A;
+                                         white-space:nowrap">
                                 <i class="bi bi-robot me-1"></i>
                                 @device.LimbType
                             </span>
                         </td>
-                        <td>
-                            @device.LengthCm cm /
-                            @device.WidthCm cm
-                        </td>
-                        <td>@(device.Material ?? "—")</td>
-                        <td>@(device.Condition ?? "—")</td>
-                        <td>@(device.Direction ?? "—")</td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="user-avatar"
-                                     style="width:32px;height:32px;
-                                            font-size:.8rem">
-                                    @uName.Substring(0, 1)
-                                </div>
-                                <span>@uName</span>
+
+                        <!-- الطول / العرض -->
+                        <td class="text-center">
+                            <div style="font-size:.82rem;
+                                font-weight:700;
+                                color:#1565C0">
+                                @device.LengthCm cm
+                            </div>
+                            <div style="font-size:.75rem;
+                                color:#7a8999">
+                                × @device.WidthCm cm
                             </div>
                         </td>
+
+                        <!-- المادة -->
+                        <td style="font-size:.85rem">
+                            @(device.Material ?? "—")
+                        </td>
+
+                        <!-- الحالة -->
                         <td>
-                            @if (device.IsAvailable)
+                            @{
+                                var condBg = device.Condition == "جديد"
+                                    ? "#E8F5E9" : "#FFF3E0";
+                                var condColor = device.Condition == "جديد"
+                                    ? "#2E7D32" : "#E65100";
+                            }
+                            <span class="badge-status"
+                                  style="background:@condBg;
+                                color:@condColor;
+                                white-space:nowrap">
+                                @(device.Condition ?? "—")
+                            </span>
+                        </td>
+
+                        <!-- الاتجاه -->
+                        <td class="text-center">
+                            @if (device.Direction != null)
                             {
                                 <span class="badge-status"
-                                      style="background:#E8F5E9;
-                                    color:#2E7D32">
-                                    <i class="bi bi-check-circle me-1"></i>
+                                      style="background:#E3F2FD;
+                                    color:#1565C0">
+                                    @device.Direction
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+
+                        <!-- المالك -->
+                        <td>
+                            <div class="d-flex align-items-center
+                                gap-1">
+                                <div class="user-avatar"
+                                     style="width:28px;height:28px;
+                                    font-size:.75rem;
+                                    flex-shrink:0">
+                                    @uName.Substring(0, 1)
+                                </div>
+                                <span style="font-size:.82rem;
+                                    overflow:hidden;
+                                    text-overflow:ellipsis;
+                                    white-space:nowrap">
+                                    @uName
+                                </span>
+                            </div>
+                        </td>
+
+                        <!-- متاح -->
+                        <td class="text-center">
+                            @if (device.IsAvailable)
+                            {
+                                <span class="badge-status d-block
+                                    text-center"
+                                      style="background:#E8F5E9;color:#2E7D32; white-space:nowrap">
+                                    <i class="bi bi-check-circle"></i>
                                     متاح
                                 </span>
                             }
@@ -124,12 +189,15 @@ else
                             {
                                 <span class="badge-status"
                                       style="background:#FFEBEE;
-                                    color:#C62828">
-                                    <i class="bi bi-x-circle me-1"></i>
+                                    color:#C62828 ; white-space:nowrap">
+                                    <i class="bi bi-x-circle"></i>
                                     غير متاح
                                 </span>
                             }
                         </td>
+                        <!-- الإجراءات -->
+                        @if (isAdmin || isManufacturer || isDonor)
+                        {
                         <td>
                             <div class="d-flex gap-1">
                                 <a asp-action="Edit"
@@ -138,20 +206,31 @@ else
                                        title="تعديل">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <form asp-action="Delete"
-                                      asp-route-id="@device.DeviceId"
-                                      method="post"
-                                      style="display:inline"
-                                      onsubmit="return confirm(
-                                    'هل أنت متأكد من الحذف؟')">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit"
-                                            class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+
+                                    <form asp-action="Delete"
+                                          asp-route-id="@device.DeviceId"
+                                          method="post"
+                                          style="display:inline"
+                                          onsubmit="return confirm(
+                                        'هل أنت متأكد من الحذف؟')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="btn btn-sm
+                                            btn-outline-danger"
+                                                title="حذف">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                               
                             </div>
                         </td>
+                        }
+                        else
+                        {
+                            <td>
+                                <span class="text-muted">صلاحيات محددة(●'◡'●)</span>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>

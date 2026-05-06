@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<Da3m.Domain.Match>
 @{
     ViewData["Title"] = "المطابقات";
-    var usersDict  = ViewData["UsersDict"]  as Dictionary<int, string>;
+    var usersDict = ViewData["UsersDict"] as Dictionary<int, string>;
     var devicesDict = ViewData["DevicesDict"] as Dictionary<int, string>;
 }
 
@@ -102,14 +102,20 @@ else
                         dName = devicesDict[match.DeviceId];
 
                     // ✅ لون النسبة
-                    var pctColor = match.MatchPercentage >= 99
-                        ? "#2E7D32" : match.MatchPercentage >= 90
-                        ? "#E65100" : match.MatchPercentage >= 80?
-                        "#C62828" : "#000000";
+                    var pctColor = match.MatchPercentage >= 99 ? "#1B5E20"
+                        : match.MatchPercentage >= 95 ? "#2E7D32"
+                        : match.MatchPercentage >= 90 ? "#558B2F"
+                        : match.MatchPercentage >= 85 ? "#E65100"
+                        : match.MatchPercentage >= 0 ? "#C62828" : "#1565C0";
+                       
                     var pctBg = match.MatchPercentage >= 99
-                        ? "#E8F5E9" : match.MatchPercentage >= 90
-                        ? "#FFF3E0" : match.MatchPercentage >= 80?
-                        "#FFEBEE" : "#FFFFFF";
+                        ? "#E8F5E9" : match.MatchPercentage >= 95
+                        ? "#F1F8E9" : match.MatchPercentage >= 90
+                        ? "#F9FBE7" : match.MatchPercentage >= 85
+                        ? "#FFF3E0" : match.MatchPercentage >= 0
+                        ? "#FFEBEE" : "#E3F2FD";
+                     
+                   
                     <tr>
                         <td>@match.MatchId</td>
                         <td>
@@ -159,14 +165,14 @@ else
                         <td>
                             <div class="d-flex gap-1">
                                 <form asp-action="Recalculate"
-                                       asp-route-id="@match.MatchId"
-                                      method ="Post" style="display:inline" 
+                                      asp-route-id="@match.MatchId"
+                                      method="Post" style="display:inline"
                                       onsubmit="return confirm('هل أنت متأكد من إعادة الحساب؟') ">
                                     @Html.AntiForgeryToken()
                                     <button type="submit"
-                                        class="btn btn-sm btn-outline-info"
-                                            title=repeat>
-                                            <i class=" bi bi-arrow-clockise"></i>
+                                            class="btn btn-sm btn-outline-info"
+                                            title=" إعادة الحساب">
+                                        <i class=" bi bi-arrow-clockwise me-1"></i>
                                     </button>
                                 </form>
                                 <form asp-action="Delete"

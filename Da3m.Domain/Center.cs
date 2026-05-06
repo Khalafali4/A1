@@ -20,7 +20,8 @@ namespace Da3m.Domain
         [MaxLength(20)]
         public string Phone { get; set; } = null!;
 
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } // مغلق مؤققتا ...
+        public bool IsDeleted { get; set; }=false;//محذوف  نهائيا  خارج الخدمة
 
         [InverseProperty("Center")]
         public ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();

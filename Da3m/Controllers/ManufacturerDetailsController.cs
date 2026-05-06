@@ -24,8 +24,7 @@ namespace Da3m.Controllers
                 ViewData["UsersDict"] = users
                     .ToDictionary(u => u.UserId, u => u.FullName);
 
-                return View(manufacturers
-                    ?? new List<ManufacturerDetail>());
+                return View(manufacturers);
             }
 
             // ── GET: Manufacturers/Create ───────

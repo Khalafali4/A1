@@ -85,7 +85,7 @@
                 المركز (اختياري)
             </label>
             <select asp-for="CenterId" class="form-select"
-                    asp-items="@(new SelectList((IEnumerable<Da3m.Domain.Center>)ViewBag.Centers,"CenterId", "CenterName"))">
+                    asp-items="@(new SelectList((IEnumerable<Da3m.Domain.Center>)ViewBag.Centers, "CenterId", "CenterName"))">
                 <option value="">-- اختر المركز --</option>
             </select>
         </div>

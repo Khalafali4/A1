@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Da3m.Data.Migrations
 {
     [DbContext(typeof(Da3mDbContext))]
-    [Migration("20260501065045_Inital")]
-    partial class Inital
+    [Migration("20260507121541_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -43,6 +43,9 @@ namespace Da3m.Data.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LocationText")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -70,6 +73,9 @@ namespace Da3m.Data.Migrations
                     b.Property<string>("HospitalName")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsDeletd")
+                        .HasColumnType("bit");
 
                     b.Property<string>("LicenseNumber")
                         .HasMaxLength(50)
@@ -103,6 +109,9 @@ namespace Da3m.Data.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
+                    b.Property<bool>("IsDeletd")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Note")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -127,6 +136,9 @@ namespace Da3m.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(0);
+
+                    b.Property<bool>("IsDeletd")
+                        .HasColumnType("bit");
 
                     b.Property<string>("PreferredDonationType")
                         .HasMaxLength(50)
@@ -157,6 +169,9 @@ namespace Da3m.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool>("IsDeletd")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Website")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -177,6 +192,9 @@ namespace Da3m.Data.Migrations
 
                     b.Property<int>("DeviceId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsDeletd")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("MatchDate")
                         .ValueGeneratedOnAdd()
@@ -265,6 +283,9 @@ namespace Da3m.Data.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<bool>("IsDeletd")
+                        .HasColumnType("bit");
+
                     b.Property<string>("NationalId")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -276,7 +297,7 @@ namespace Da3m.Data.Migrations
                     b.ToTable("PatientDetails");
                 });
 
-            modelBuilder.Entity("Da3m.Domain.Prosthesis", b =>
+            modelBuilder.Entity("Da3m.Domain.Prostheses", b =>
                 {
                     b.Property<int>("DeviceId")
                         .ValueGeneratedOnAdd()
@@ -301,6 +322,9 @@ namespace Da3m.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
+
+                    b.Property<bool>("IsDeletd")
+                        .HasColumnType("bit");
 
                     b.Property<decimal>("LengthCm")
                         .HasColumnType("decimal(6, 2)")
@@ -342,6 +366,9 @@ namespace Da3m.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoleId"));
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("RoleName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -375,6 +402,9 @@ namespace Da3m.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -411,6 +441,9 @@ namespace Da3m.Data.Migrations
                     b.Property<string>("DoctorNotes")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsDeletd")
+                        .HasColumnType("bit");
 
                     b.Property<int>("MatchId")
                         .HasColumnType("int");
@@ -487,7 +520,7 @@ namespace Da3m.Data.Migrations
 
             modelBuilder.Entity("Da3m.Domain.Match", b =>
                 {
-                    b.HasOne("Da3m.Domain.Prosthesis", "Device")
+                    b.HasOne("Da3m.Domain.Prostheses", "Device")
                         .WithMany("Matches")
                         .HasForeignKey("DeviceId")
                         .IsRequired()
@@ -526,7 +559,7 @@ namespace Da3m.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Da3m.Domain.Prosthesis", b =>
+            modelBuilder.Entity("Da3m.Domain.Prostheses", b =>
                 {
                     b.HasOne("Da3m.Domain.User", "User")
                         .WithMany("Prostheses")
@@ -579,7 +612,7 @@ namespace Da3m.Data.Migrations
                     b.Navigation("VisitReports");
                 });
 
-            modelBuilder.Entity("Da3m.Domain.Prosthesis", b =>
+            modelBuilder.Entity("Da3m.Domain.Prostheses", b =>
                 {
                     b.Navigation("Matches");
                 });

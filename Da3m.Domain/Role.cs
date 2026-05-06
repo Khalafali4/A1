@@ -14,6 +14,7 @@ namespace Da3m.Domain
         [Required]
         [MaxLength(50)]
         public string RoleName { get; set; } = null!;
+        public bool IsDeleted { get; set; }= false;
 
         [InverseProperty("Role")]
         public virtual ICollection<User> Users { get; set; } = new List<User>();

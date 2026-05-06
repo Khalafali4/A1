@@ -1,54 +1,66 @@
 ﻿@model Da3m.Domain.PatientDetail
-
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "تفاصيل المريض";
 }
 
-<h1>Details</h1>
-
-<div>
-    <h4>PatientDetail</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NationalId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NationalId)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.BirthDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.BirthDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Gender)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Gender)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Address)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Address)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DisabilityType)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DisabilityType)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.User)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.User.Email)
-        </dd>
-    </dl>
+<div class="page-header">
+    <h2>
+        <i class="bi bi-person-heart me-2"></i>
+        تفاصيل المريض
+    </h2>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.UserId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<div class="da3m-table p-4" style="max-width:600px">
+    <div class="row g-3">
+        <div class="col-6">
+            <div class="text-muted" style="font-size:.82rem">
+                الرقم الوطني
+            </div>
+            <div class="fw-bold">@Model.NationalId</div>
+        </div>
+        <div class="col-6">
+            <div class="text-muted" style="font-size:.82rem">
+                تاريخ الميلاد
+            </div>
+            <div class="fw-bold">
+                @Model.BirthDate.ToString("yyyy/MM/dd")
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="text-muted" style="font-size:.82rem">
+                الجنس
+            </div>
+            <div class="fw-bold">@(Model.Gender ?? "—")</div>
+        </div>
+        <div class="col-6">
+            <div class="text-muted" style="font-size:.82rem">
+                العنوان
+            </div>
+            <div class="fw-bold">@(Model.Address ?? "—")</div>
+        </div>
+        <div class="col-12">
+            <div class="text-muted" style="font-size:.82rem">
+                نوع الإعاقة
+            </div>
+            <div class="fw-bold">
+                @(Model.DisabilityType ?? "—")
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-action="Index"
+               class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-right me-1"></i> رجوع
+        </a>
+        @if (ViewBag.CurrentRole?.ToString().ToLower() == "admin"
+                          || ViewBag.CurrentRole?.ToString() == "مدير")
+        {
+            <a asp-action="Edit"
+                   asp-route-id="@Model.UserId"
+                   class="btn btn-warning ms-2">
+                <i class="bi bi-pencil me-1"></i> تعديل
+            </a>
+        }
+    </div>
 </div>

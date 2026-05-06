@@ -23,6 +23,8 @@ namespace Da3m.Domain
         [MaxLength(50)]
         public string? Condition { get; set; }
 
+        public bool IsDeletd { get; set; } = false;
+
         public bool IsAvailable { get; set; }
 
         [Column(TypeName = "datetime")]

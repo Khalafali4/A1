@@ -22,6 +22,7 @@ namespace Da3m.Domain
 
         [MaxLength(150)]
         public string? Address { get; set; }
+        public bool IsDeletd { get; set; } = false;
 
         [MaxLength(100)]
         public string? DisabilityType { get; set; }

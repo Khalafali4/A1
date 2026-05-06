@@ -34,13 +34,11 @@ namespace Da3m.Controllers
                 return View();
             }
 
-            var users = await _context.Users.FindAsync(u =>
-                u.Email == email &&
-                u.Password == password);
+            var users = await _context.Users.FindAsync(u => u.Email == email && u.Password == password);
 
             var user = users.FirstOrDefault();
 
-            if (user == null)
+            if (user == null || user.IsDeleted)
             {
                 ViewBag.Error =
                     "البريد الإلكتروني أو كلمة المرور غير صحيحة";
@@ -117,8 +115,7 @@ namespace Da3m.Controllers
 
             // ✅ سجّل دخوله تلقائياً
             var roles = await _context.Roles.GetAllAsync();
-            var role = roles.FirstOrDefault(r =>
-                r.RoleId == roleId);
+            var role = roles.FirstOrDefault(r =>r.RoleId == roleId);
 
             HttpContext.Session.SetString("UserId", user.UserId.ToString());
             HttpContext.Session.SetString("UserName",

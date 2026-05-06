@@ -4,10 +4,10 @@
 
     // Role flags used by this view (ensure controller sets ViewBag.CurrentRole or use Identity instead)
     var role = ViewBag.CurrentRole as string ?? "";
-    bool isAdmin        = role.ToLower() == "admin"        || role == "مدير";
-    bool isDoctor       = role.ToLower() == "doctor"       || role == "طبيب";
-    bool isPatient      = role.ToLower() == "patient"      || role == "مريض";
-    bool isDonor        = role.ToLower() == "donor"        || role == "متبرع";
+    bool isAdmin = role.ToLower() == "admin" || role == "مدير";
+    bool isDoctor = role.ToLower() == "doctor" || role == "طبيب";
+    bool isPatient = role.ToLower() == "patient" || role == "مريض";
+    bool isDonor = role.ToLower() == "donor" || role == "متبرع";
     bool isManufacturer = role.ToLower() == "manufacturer" || role == "مصنع";
     
 
@@ -26,11 +26,11 @@
     int activeCenters = (int)(ViewBag.ActiveCenters ?? 0);
     decimal totalDon = (decimal)(ViewBag.TotalDonations ?? 0m);
 
-    List<Match> latestMatches =ViewBag.LatestMatches as List<Match>?? new List<Match>();
+    List<Match> latestMatches = ViewBag.LatestMatches as List<Match> ?? new List<Match>();
 
-    List<Donation> latestDonations =ViewBag.LatestDonations as List<Donation>?? new List<Donation>();
+    List<Donation> latestDonations = ViewBag.LatestDonations as List<Donation> ?? new List<Donation>();
 
-    List<object> rolesCount =ViewBag.RolesCount as List<object>?? new List<object>();
+    List<object> rolesCount = ViewBag.RolesCount as List<object> ?? new List<object>();
 
     int devPct = devicesCount > 0 ? (int)((double)availDev / devicesCount * 100) : 0;
 
@@ -469,7 +469,7 @@
                 }
 
             </div>
-         </div>
+        </div>
     
     </div>
-</div>  
+</div>

@@ -18,9 +18,7 @@
                 المتبرع
             </label>
             <select asp-for="UserId" class="form-select"
-                    asp-items="@(new SelectList(
-                                                            (IEnumerable<Da3m.Domain.User>)ViewData["Users"],
-                                                            "UserId", "FullName"))">
+                    asp-items="@(new SelectList((IEnumerable<Da3m.Domain.User>)ViewData["Users"],"UserId", "FullName"))">
                 <option value="">-- اختر المتبرع --</option>
             </select>
             <span asp-validation-for="UserId"
@@ -42,8 +40,7 @@
         </div>
 
         <div class="mb-4">
-            <label asp-for="Note" class="form-label fw-bold">
-                ملاحظة (اختياري)
+            <label asp-for="Note" class="form-label fw-bold">(ملاحظةاختياري)
             </label>
             <textarea asp-for="Note" class="form-control"
                       rows="3"

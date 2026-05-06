@@ -38,7 +38,7 @@
                 رقم الهاتف
             </label>
             <input asp-for="Phone" class="form-control"
-                   placeholder="05xxxxxxxx" />
+                   placeholder="09xxxxxxxx" />
             <span asp-validation-for="Phone"
                   class="text-danger small"></span>
         </div>
@@ -59,7 +59,7 @@
             </label>
             <select asp-for="RoleId" class="form-select"
                     asp-items="@(new SelectList(
-            (IEnumerable<Da3m.Domain.Role>)ViewBag.Roles,"RoleId", "RoleName"))">
+                                                (IEnumerable<Da3m.Domain.Role>)ViewBag.Roles, "RoleId", "RoleName"))">
                 <option value="">-- اختر الدور --</option>
             </select>
             <span asp-validation-for="RoleId"

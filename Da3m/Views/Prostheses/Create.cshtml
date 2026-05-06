@@ -1,26 +1,47 @@
 ﻿@model Da3m.Domain.Prostheses
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "إضافة جهاز تعويضي";
+    bool isOwner = ViewBag.OwnerId != null;
 }
 
 <div class="page-header">
     <h2><i class="bi bi-robot me-2"></i>إضافة جهاز تعويضي</h2>
-    <p>الجهاز سيُسجل باسمك تلقائياً</p>
-</div>
-
-<!-- ✅ بطاقة المالك -->
-<div class="alert alert-info mb-3">
-    <i class="bi bi-person-check me-2"></i>
-    <strong>المالك:</strong> @ViewBag.OwnerName
-    <input type="hidden" name="UserId"
-           value="@ViewBag.OwnerId" />
 </div>
 
 <div class="da3m-table p-4" style="max-width:600px">
     <form asp-action="Create" method="post">
         @Html.AntiForgeryToken()
-        <input type="hidden" name="UserId"
-               value="@ViewBag.OwnerId" />
+
+        @if (isOwner)
+        {
+            <!-- ✅ Donor/Manufacturer — تلقائي -->
+            <input type="hidden" name="UserId"
+                   value="@ViewBag.OwnerId" />
+            <div class="alert alert-info mb-3 py-2">
+                <i class="bi bi-person-check me-2"></i>
+                <strong>المالك:</strong> @ViewBag.OwnerName
+            </div>
+        }
+        else
+        {
+            <!-- ✅ Admin — يختار -->
+            <div class="mb-3">
+                <label asp-for="UserId"
+                       class="form-label fw-bold">
+                    المالك
+                </label>
+                <select asp-for="UserId" class="form-select"
+                        asp-items="@(new SelectList(
+                            (IEnumerable<Da3m.Domain.User>)
+                                ViewData["Users"],
+                            "UserId", "FullName"))">
+                    <option value="">-- اختر المالك --</option>
+                </select>
+                <span asp-validation-for="UserId"
+                      class="text-danger small"></span>
+            </div>
+        }
 
         <div class="mb-3">
             <label asp-for="LimbType" class="form-label fw-bold">
@@ -31,6 +52,8 @@
                 <option value="طرف علوي">طرف علوي 🦾</option>
                 <option value="طرف سفلي">طرف سفلي 🦿</option>
             </select>
+            <span asp-validation-for="LimbType"
+                  class="text-danger small"></span>
         </div>
 
         <div class="row">
@@ -39,40 +62,34 @@
                        class="form-label fw-bold">
                     الطول (cm)
                 </label>
-                <input asp-for="LengthCm" class="form-control"
-                       type="number" step="0.01" />
+                <div class="input-group">
+                    <input asp-for="LengthCm"
+                           class="form-control"
+                           type="number" step="0.01"
+                           placeholder="0.00" />
+                    <span class="input-group-text">cm</span>
+                </div>
             </div>
             <div class="col mb-3">
                 <label asp-for="WidthCm"
                        class="form-label fw-bold">
                     العرض (cm)
                 </label>
-                <input asp-for="WidthCm" class="form-control"
-                       type="number" step="0.01" />
+                <div class="input-group">
+                    <input asp-for="WidthCm"
+                           class="form-control"
+                           type="number" step="0.01"
+                           placeholder="0.00" />
+                    <span class="input-group-text">cm</span>
+                </div>
             </div>
         </div>
-
-        @if (ViewBag.CurrentRole?.ToString().ToLower()
-             == "manufacturer")
-        {
-            <!-- ✅ المصنّع يحدد الكمية -->
-            <div class="mb-3">
-                <label class="form-label fw-bold">
-                    الكمية المتاحة
-                </label>
-                <input name="Quantity" class="form-control"
-                       type="number" min="1"
-                       placeholder="عدد الأجهزة" />
-                <small class="text-muted">
-                    سيتم إضافة هذا العدد من الأجهزة
-                </small>
-            </div>
-        }
 
         <div class="mb-3">
             <label asp-for="Material"
                    class="form-label fw-bold">المادة</label>
-            <input asp-for="Material" class="form-control" />
+            <input asp-for="Material" class="form-control"
+                   placeholder="مثال: كربون، تيتانيوم" />
         </div>
 
         <div class="mb-3">
@@ -85,7 +102,6 @@
                 <option value="مستعمل مقبول">مستعمل - مقبول</option>
             </select>
         </div>
-
         <div class="mb-3">
             <label asp-for="Direction"
                    class="form-label fw-bold">الاتجاه</label>
@@ -114,6 +130,7 @@
                 </label>
             </div>
         </div>
+
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-check-lg me-1"></i> حفظ

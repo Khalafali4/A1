@@ -47,7 +47,7 @@
                 المركز
             </label>
             <select asp-for="CenterId" class="form-select"
-                    asp-items="@(new SelectList((IEnumerable<Da3m.Domain.Center>)ViewBag.Centers,"CenterId","CenterName",Model.CenterId))">
+                    asp-items="@(new SelectList((IEnumerable<Da3m.Domain.Center>)ViewBag.Centers, "CenterId", "CenterName", Model.CenterId))">
                 <option value="">-- بدون مركز --</option>
             </select>
             <span asp-validation-for="CenterId"
