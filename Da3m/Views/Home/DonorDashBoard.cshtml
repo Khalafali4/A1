@@ -1,0 +1,134 @@
+﻿@{
+    ViewData["Title"] = "لوحة التحكم";
+
+    // ✅ تحويل آمن
+    int myDonationsCount = (int)(ViewBag.MyDonationsCount ?? 0);
+    int myDevicesCount = (int)(ViewBag.MyDevicesCount ?? 0);
+
+    decimal myTotal = 0m;
+    if (ViewBag.MyTotalDonations != null)
+        decimal.TryParse(
+            ViewBag.MyTotalDonations.ToString(),
+            System.Globalization.NumberStyles.Number,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out myTotal);
+
+    var latestDonations = ViewBag.LatestDonations
+        as List<Da3m.Domain.Donation>
+        ?? new List<Da3m.Domain.Donation>();
+}
+
+<div class="page-header">
+    <h2>
+        <i class="bi bi-gift me-2"></i>
+        مرحباً @ViewBag.CurrentUser
+    </h2>
+    <p>لوحة تحكم المتبرع</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#FCE4EC">
+                <i class="bi bi-cash-coin"
+                   style="color:#AD1457"></i>
+            </div>
+            <div class="stat-num"> $@myTotal.ToString("N0")
+            </div>
+            <div class="stat-label">إجمالي تبرعاتي</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#E8F5E9">
+                <i class="bi bi-receipt"
+                   style="color:#2E7D32"></i>
+            </div>
+            <div class="stat-num">@myDonationsCount</div>
+            <div class="stat-label">عدد التبرعات</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#F3E5F5">
+                <i class="bi bi-robot"
+                   style="color:#6A1B9A"></i>
+            </div>
+            <div class="stat-num">@myDevicesCount</div>
+            <div class="stat-label">أجهزة تبرعت بها</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12">
+        <div class="da3m-table">
+            <div class="p-3 border-bottom d-flex
+                justify-content-between">
+                <h6 class="fw-bold mb-0"
+                    style="color:#AD1457">
+                    <i class="bi bi-clock-history me-1"></i>
+                    آخر تبرعاتي
+                </h6>
+                <a asp-controller="Donations"
+                       asp-action="Index"
+                       class="btn btn-sm btn-outline-danger">
+                    عرض الكل
+                </a>
+            </div>
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>المبلغ</th>
+                        <th>الملاحظة</th>
+                        <th>التاريخ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (Da3m.Domain.Donation d
+                                            in latestDonations)
+                    {
+                        <tr>
+                            <td>
+                                <span class="fw-bold" style="color:#2E7D32"> $@d.Amount.ToString("N2")
+                                </span>
+                            </td>
+                            <td>@(d.Note ?? "—")</td>
+                            <td style="color:#7a8999">
+                                @d.DonationDate.ToString("yyyy/MM/dd")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-2">
+    <div class="col-12">
+        <div class="da3m-table p-3">
+            <h6 class="fw-bold text-primary mb-3">
+                <i class="bi bi-lightning-fill me-1"></i>
+                وصول سريع
+            </h6>
+            <div class="d-flex gap-2">
+                <a asp-controller="Donations"
+                       asp-action="Create"
+                       class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-cash-coin me-1"></i>
+                    إضافة تبرع مالي
+                </a>
+                <a asp-controller="Prostheses"
+                       asp-action="Create"
+                       class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-robot me-1"></i>
+                    التبرع بجهاز
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

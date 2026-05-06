@@ -1,0 +1,104 @@
+﻿@model Da3m.Domain.Measurement
+@{
+    ViewData["Title"] = "إضافة قياس";
+    bool isPatient = ViewBag.PatientId != null;
+}
+
+@if (isPatient)
+{
+    <div class="alert alert-info mb-3">
+        <i class="bi bi-person-check me-2"></i>
+        <strong>المريض:</strong> @ViewBag.PatientName
+    </div>
+}
+
+<div class="da3m-table p-4" style="max-width:600px">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        @if (isPatient)
+        {
+            <!-- ✅ المريض — hidden تلقائي -->
+            <input type="hidden" name="UserId"
+                   value="@ViewBag.PatientId" />
+        }
+        else
+        {
+            <!-- Admin + Doctor — يختار -->
+            <div class="mb-3">
+                <label asp-for="UserId"
+                       class="form-label fw-bold">
+                    المريض
+                </label>
+                <select asp-for="UserId" class="form-select"
+                        asp-items="@(new SelectList((IEnumerable<Da3m.Domain.User>)ViewData["Users"],"UserId", "FullName"))">
+                    <option value="">-- اختر المريض --</option>
+                </select>
+            </div>
+        }
+
+        <!-- باقي الحقول كما هي -->
+        <div class="mb-3">
+            <label asp-for="LimbType"
+                   class="form-label fw-bold">
+                نوع الطرف
+            </label>
+            <select asp-for="LimbType" class="form-select">
+                <option value="">-- اختر --</option>
+                <option value="طرف علوي أيمن">طرف علوي أيمن</option>
+                <option value="طرف علوي أيسر">طرف علوي أيسر</option>
+                <option value="طرف سفلي أيمن">طرف سفلي أيمن</option>
+                <option value="طرف سفلي أيسر">طرف سفلي أيسر</option>
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="col mb-3">
+                <label asp-for="LengthCm"
+                       class="form-label fw-bold">
+                    الطول (cm)
+                </label>
+                <div class="input-group">
+                    <input asp-for="LengthCm"
+                           class="form-control"
+                           type="number" step="0.01"
+                           placeholder="0.00" />
+                    <span class="input-group-text">cm</span>
+                </div>
+            </div>
+            <div class="col mb-3">
+                <label asp-for="WidthCm"
+                       class="form-label fw-bold">
+                    العرض (cm)
+                </label>
+                <div class="input-group">
+                    <input asp-for="WidthCm"
+                           class="form-control"
+                           type="number" step="0.01"
+                           placeholder="0.00" />
+                    <span class="input-group-text">cm</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Notes"
+                   class="form-label fw-bold">
+                ملاحظات
+            </label>
+            <textarea asp-for="Notes"
+                          class="form-control" rows="3">
+            </textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i> حفظ
+                </button>
+                <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-right me-1"></i> رجوع
+                </a>
+            </div>
+        </form>
+    </div>

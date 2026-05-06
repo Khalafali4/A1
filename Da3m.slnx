@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Da3m.Data/Da3m.Data.csproj" />
+  <Project Path="Da3m.Domain/Da3m.Domain.csproj" />
+  <Project Path="Da3m/Da3m.csproj" />
+</Solution>

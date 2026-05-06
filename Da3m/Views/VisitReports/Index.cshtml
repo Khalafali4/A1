@@ -1,0 +1,117 @@
+﻿@model IEnumerable<Da3m.Domain.VisitReport>
+@{
+    ViewData["Title"] = "تقارير الزيارات";
+    var centersDict = ViewData["CentersDict"]
+                      as Dictionary<int, string>;
+    var matchesDict = ViewData["MatchesDict"]
+                      as Dictionary<int, string>;
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h2><i class="bi bi-file-medical-fill me-2"></i>
+            تقارير الزيارات
+        </h2>
+        <p>سجل جميع زيارات المرضى للمراكز</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> إضافة تقرير
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close"
+                data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        لا توجد تقارير زيارات مسجلة حالياً
+    </div>
+}
+else
+{
+    <div class="da3m-table">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>المطابقة</th>
+                    <th>المركز</th>
+                    <th>ملاحظات الطبيب</th>
+                    <th>ملاحظات المريض</th>
+                    <th>تاريخ الزيارة</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Da3m.Domain.VisitReport report in Model)
+                {
+                    var cName = "—";
+                    var mName = "—";
+
+                    if (centersDict != null &&
+                        centersDict.ContainsKey(report.CenterId))
+                        cName = centersDict[report.CenterId];
+
+                    if (matchesDict != null &&
+                        matchesDict.ContainsKey(report.MatchId))
+                        mName = matchesDict[report.MatchId];
+
+                    <tr>
+                        <td>@report.ReportId</td>
+                        <td>
+                            <span class="badge-status"
+                                  style="background:#E0F7FA;
+                                         color:#00838F">
+                                <i class="bi bi-shuffle me-1"></i>
+                                @mName
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge-status"
+                                  style="background:#E3F2FD;
+                                         color:#1565C0">
+                                <i class="bi bi-hospital me-1"></i>
+                                @cName
+                            </span>
+                        </td>
+                        <td>@(report.DoctorNotes ?? "—")</td>
+                        <td>@(report.PatientFeedback ?? "—")</td>
+                        <td>
+                            @report.ReportDate.ToString("yyyy/MM/dd")
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Edit"
+                                   asp-route-id="@report.ReportId"
+                                   class="btn btn-sm btn-outline-warning"
+                                   title="تعديل">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form asp-action="Delete"
+                                      asp-route-id="@report.ReportId"
+                                      method="post"
+                                      style="display:inline"
+                                      onsubmit="return confirm(
+                                    'هل أنت متأكد من الحذف؟')">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

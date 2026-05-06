@@ -1,0 +1,191 @@
+﻿@model IEnumerable<Da3m.Domain.Match>
+@{
+    ViewData["Title"] = "المطابقات";
+    var usersDict  = ViewData["UsersDict"]  as Dictionary<int, string>;
+    var devicesDict = ViewData["DevicesDict"] as Dictionary<int, string>;
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h2><i class="bi bi-shuffle me-2"></i>المطابقات</h2>
+        <p>مطابقة المرضى بالأجهزة التعويضية المناسبة</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> إضافة مطابقة
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close"
+                data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        لا توجد مطابقات مسجلة حالياً
+    </div>
+}
+else
+{
+    <!-- إحصائيات -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon mb-2"
+                     style="background:#E0F7FA">
+                    <i class="bi bi-shuffle"
+                       style="color:#00838F"></i>
+                </div>
+                <div class="stat-num">@Model.Count()</div>
+                <div class="stat-label">إجمالي المطابقات</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon mb-2"
+                     style="background:#E8F5E9">
+                    <i class="bi bi-star-fill"
+                       style="color:#2E7D32"></i>
+                </div>
+                <div class="stat-num">
+                    @Model.Count(m => m.MatchPercentage >= 99)
+                </div>
+                <div class="stat-label">مطابقات ممتازة</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon mb-2"
+                     style="background:#E3F2FD">
+                    <i class="bi bi-graph-up"
+                       style="color:#1565C0"></i>
+                </div>
+                <div class="stat-num">
+                    @Model.Average(m => m.MatchPercentage).ToString("N1")%
+                </div>
+                <div class="stat-label">متوسط نسبة المطابقة</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="da3m-table">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>المريض</th>
+                    <th>الجهاز</th>
+                    <th>نسبة المطابقة</th>
+                    <th>الحالة</th>
+                    <th>التاريخ</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Da3m.Domain.Match match in Model)
+                {
+                    var uName = "—";
+                    var dName = "—";
+
+                    if (usersDict != null &&
+                        usersDict.ContainsKey(match.UserId))
+                        uName = usersDict[match.UserId];
+
+                    if (devicesDict != null &&
+                        devicesDict.ContainsKey(match.DeviceId))
+                        dName = devicesDict[match.DeviceId];
+
+                    // ✅ لون النسبة
+                    var pctColor = match.MatchPercentage >= 99
+                        ? "#2E7D32" : match.MatchPercentage >= 90
+                        ? "#E65100" : match.MatchPercentage >= 80?
+                        "#C62828" : "#000000";
+                    var pctBg = match.MatchPercentage >= 99
+                        ? "#E8F5E9" : match.MatchPercentage >= 90
+                        ? "#FFF3E0" : match.MatchPercentage >= 80?
+                        "#FFEBEE" : "#FFFFFF";
+                    <tr>
+                        <td>@match.MatchId</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="user-avatar"
+                                     style="width:32px;height:32px;
+                                    font-size:.8rem">
+                                    @uName.Substring(0, 1)
+                                </div>
+                                <span class="fw-bold">@uName</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-status"
+                                  style="background:#F3E5F5;
+                                color:#6A1B9A">
+                                <i class="bi bi-robot me-1"></i>@dName
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="flex:1;height:8px;
+                                    background:#eee;
+                                    border-radius:4px;
+                                    max-width:80px">
+                                    <div style="width:@(match.MatchPercentage)%;
+                                        height:100%;
+                                        background:@pctColor;
+                                        border-radius:4px">
+                                    </div>
+                                </div>
+                                <span class="badge-status"
+                                      style="background:@pctBg;
+                                    color:@pctColor">
+                                    @match.MatchPercentage%
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-status"
+                                  style="background:@pctBg;
+                                color:@pctColor">
+                                @match.Status
+                            </span>
+                        </td>
+                        <td>@match.MatchDate.ToString("yyyy/MM/dd")</td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <form asp-action="Recalculate"
+                                       asp-route-id="@match.MatchId"
+                                      method ="Post" style="display:inline" 
+                                      onsubmit="return confirm('هل أنت متأكد من إعادة الحساب؟') ">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit"
+                                        class="btn btn-sm btn-outline-info"
+                                            title=repeat>
+                                            <i class=" bi bi-arrow-clockise"></i>
+                                    </button>
+                                </form>
+                                <form asp-action="Delete"
+                                      asp-route-id="@match.MatchId"
+                                      method="post"
+                                      style="display:inline"
+                                      onsubmit="return confirm(
+                                    'هل أنت متأكد من الحذف؟')">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

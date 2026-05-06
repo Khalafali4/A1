@@ -1,0 +1,114 @@
+﻿@model Da3m.Domain.Match
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "تعديل المطابقة";
+}
+
+<div class="page-header">
+    <h2><i class="bi bi-shuffle me-2"></i>تعديل المطابقة</h2>
+</div>
+
+<div class="da3m-table p-4" style="max-width:600px">
+    <form asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="MatchId" />
+        <input type="hidden" asp-for="MatchDate" />
+        @{
+            var patients = ViewData["Patients"]
+                as IEnumerable<Da3m.Domain.User>
+                ?? new List<Da3m.Domain.User>();
+
+            var devices = ViewData["Devices"]
+                as IEnumerable<Da3m.Domain.Prostheses>
+                ?? new List<Da3m.Domain.Prostheses>();
+        }
+
+        <!-- المريض -->
+        <div class="mb-3">
+            <label asp-for="UserId" class="form-label fw-bold">
+                المريض
+            </label>
+            <select asp-for="UserId" class="form-select">
+                <option value="">-- اختر --</option>
+                @foreach (var u in patients)
+                {
+                    if (u.UserId == Model.UserId)
+                    {
+                        <option value="@u.UserId" selected>
+                            @u.FullName
+                        </option>
+                    }
+                    else
+                    {
+                        <option value="@u.UserId">
+                            @u.FullName
+                        </option>
+                    }
+                }
+            </select>
+        </div>
+
+        <!-- الجهاز -->
+        <div class="mb-3">
+            <label asp-for="DeviceId" class="form-label fw-bold">
+                الجهاز
+            </label>
+            <select asp-for="DeviceId" class="form-select">
+                <option value="">-- اختر --</option>
+                @foreach (var d in devices)
+                {
+                    var txt = d.LimbType + " — "
+                        + d.LengthCm + "×" + d.WidthCm
+                        + " cm";
+                    if (d.DeviceId == Model.DeviceId)
+                    {
+                        <option value="@d.DeviceId" selected>
+                            @txt
+                        </option>
+                    }
+                    else
+                    {
+                        <option value="@d.DeviceId">@txt</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="MatchPercentage"
+                   class="form-label fw-bold">
+                نسبة المطابقة
+                <span id="pctLabel" class="ms-2"
+                      style="color:#1565C0;font-size:1.1rem">
+                    @Model.MatchPercentage%
+                </span>
+            </label>
+            <input asp-for="MatchPercentage"
+                   class="form-range" type="range"
+                   min="0" max="100" step="1"
+                   oninput="updatePct(this.value)" />
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-warning">
+                <i class="bi bi-check-lg me-1"></i> حفظ التعديلات
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-right me-1"></i> رجوع
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function updatePct(val) {
+            var label = document.getElementById('pctLabel');
+            label.textContent = val + '%';
+            label.style.color = val >= 99 ? '#2E7D32'
+                              : val >= 90 ? '#E65100'
+                              : val >= 85 ? '#FFA000'
+                              : '#C62828';
+        }
+    </script>
+}

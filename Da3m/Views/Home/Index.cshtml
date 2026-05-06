@@ -1,0 +1,475 @@
+﻿@using Da3m.Domain
+@{
+    ViewData["Title"] = "لوحة التحكم";
+
+    // Role flags used by this view (ensure controller sets ViewBag.CurrentRole or use Identity instead)
+    var role = ViewBag.CurrentRole as string ?? "";
+    bool isAdmin        = role.ToLower() == "admin"        || role == "مدير";
+    bool isDoctor       = role.ToLower() == "doctor"       || role == "طبيب";
+    bool isPatient      = role.ToLower() == "patient"      || role == "مريض";
+    bool isDonor        = role.ToLower() == "donor"        || role == "متبرع";
+    bool isManufacturer = role.ToLower() == "manufacturer" || role == "مصنع";
+    
+
+    Dictionary<int, string> usersDict = ViewBag.UsersDict as Dictionary<int, string> ?? new Dictionary<int, string>();
+
+    int usersCount = (int)(ViewBag.UsersCount ?? 0);
+    int doctorsCount = (int)(ViewBag.DoctorsCount ?? 0);
+    int patientsCount = (int)(ViewBag.PatientsCount ?? 0);
+    int devicesCount = (int)(ViewBag.DevicesCount ?? 0);
+    int matchesCount = (int)(ViewBag.MatchesCount ?? 0);
+    int donationsCount = (int)(ViewBag.DonationsCount ?? 0);
+    int reportsCount = (int)(ViewBag.ReportsCount ?? 0);
+    int centersCount = (int)(ViewBag.CentersCount ?? 0);
+    int availDev = (int)(ViewBag.AvailableDevices ?? 0);
+    int excellentMatch = (int)(ViewBag.ExcellentMatches ?? 0);
+    int activeCenters = (int)(ViewBag.ActiveCenters ?? 0);
+    decimal totalDon = (decimal)(ViewBag.TotalDonations ?? 0m);
+
+    List<Match> latestMatches =ViewBag.LatestMatches as List<Match>?? new List<Match>();
+
+    List<Donation> latestDonations =ViewBag.LatestDonations as List<Donation>?? new List<Donation>();
+
+    List<object> rolesCount =ViewBag.RolesCount as List<object>?? new List<object>();
+
+    int devPct = devicesCount > 0 ? (int)((double)availDev / devicesCount * 100) : 0;
+
+    int matchPct = matchesCount > 0 ? (int)((double)excellentMatch / matchesCount * 100) : 0;
+}
+
+<!-- ── Page Header ── -->
+<div class="page-header">
+    <h2><i class="bi bi-grid-1x2-fill me-2"></i>لوحة التحكم</h2>
+    <p>نظرة عامة على منصة دعم</p>
+</div>
+
+<!-- ── بطاقات إحصائية ── -->
+<div class="row g-3 mb-4">
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between
+                align-items-center mb-3">
+                <div class="stat-icon" style="background:#E3F2FD">
+                    <i class="bi bi-people-fill"
+                       style="color:#1565C0"></i>
+                </div>
+                <span class="badge-status"
+                      style="background:#E3F2FD;color:#1565C0">
+                    إجمالي
+                </span>
+            </div>
+            <div class="stat-num">@usersCount</div>
+            <div class="stat-label">المستخدمون</div>
+            <div class="mt-2" style="font-size:.78rem;color:#7a8999">
+                <i class="bi bi-person-badge me-1"></i>
+                @doctorsCount طبيب |
+                <i class="bi bi-person-heart me-1"></i>
+                @patientsCount مريض
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between
+                align-items-center mb-3">
+                <div class="stat-icon" style="background:#F3E5F5">
+                    <i class="bi bi-robot"
+                       style="color:#6A1B9A"></i>
+                </div>
+                <span class="badge-status"
+                      style="background:#E8F5E9;color:#2E7D32">
+                    @availDev متاح
+                </span>
+            </div>
+            <div class="stat-num">@devicesCount</div>
+            <div class="stat-label">الأجهزة التعويضية</div>
+            <div class="mt-2">
+                <div style="height:6px;background:#eee;
+                    border-radius:3px">
+                    <div style="width:@devPct%;height:100%;
+                    background:#6A1B9A;
+                    border-radius:3px"></div>
+                </div>
+                <small class="text-muted">@devPct% متاحة</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between
+                align-items-center mb-3">
+                <div class="stat-icon" style="background:#E0F7FA">
+                    <i class="bi bi-shuffle"
+                       style="color:#00838F"></i>
+                </div>
+                <span class="badge-status"
+                      style="background:#E8F5E9;color:#2E7D32">
+                    @excellentMatch ممتازة
+                </span>
+            </div>
+            <div class="stat-num">@matchesCount</div>
+            <div class="stat-label">المطابقات</div>
+            <div class="mt-2">
+                <div style="height:6px;background:#eee;
+                    border-radius:3px">
+                    <div style="width:@matchPct%;height:100%;
+                    background:#00838F;
+                    border-radius:3px"></div>
+                </div>
+                <small class="text-muted">@matchPct% ممتازة</small>
+            </div>
+        </div>
+    </div>
+    @if (isDoctor)
+    {
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-icon mx-auto mb-2"
+                     style="background:#E8F5E9">
+                    <i class="bi bi-hospital-fill"
+                       style="color:#2E7D32"></i>
+                </div>
+                <div class="stat-num">@centersCount</div>
+                <div class="stat-label">المراكز</div>
+                <small class="text-muted">@activeCenters نشط</small>
+            </div>
+        </div>
+    }
+    @if (isAdmin)
+    {
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between
+                align-items-center mb-3">
+                    <div class="stat-icon" style="background:#FCE4EC">
+                        <i class="bi bi-cash-coin"
+                        style="color:#AD1457"></i>
+                    </div>
+                    <span class="badge-status"
+                    style="background:#FCE4EC;color:#AD1457">
+                        @donationsCount عملية
+                    </span>
+                </div>
+                <div class="stat-num">$@totalDon.ToString("N0")</div>
+                <div class="stat-label">إجمالي التبرعات</div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- ── صف ثاني ── -->
+<div class="row g-3 mb-4">
+    @if (isAdmin || isDonor || isManufacturer || isPatient)
+    {
+
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-icon mx-auto mb-2"
+                style="background:#E8F5E9">
+                    <i class="bi bi-hospital-fill"
+                    style="color:#2E7D32"></i>
+                </div>
+                <div class="stat-num">@centersCount</div>
+                <div class="stat-label">المراكز</div>
+                <small class="text-muted">@activeCenters نشط</small>
+            </div>
+        </div>
+    }
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#FFF3E0">
+                <i class="bi bi-file-medical-fill"
+                   style="color:#E65100"></i>
+            </div>
+            <div class="stat-num">@reportsCount</div>
+            <div class="stat-label">تقارير الزيارات</div>
+        </div>
+    </div>
+    @if (isDoctor)
+    {
+        <div class="col-md-6">
+            <div class="da3m-table">
+                <div class="p-3 border-bottom d-flex
+                    justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0" style="color:#1565C0">
+                        <i class="bi bi-shuffle me-1"></i>
+                        آخر المطابقات
+                    </h6>
+                    <a asp-controller="Matches" asp-action="Index"
+                           class="btn btn-sm btn-outline-primary">
+                        عرض الكل
+                    </a>
+                </div>
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>المريض</th>
+                            <th>النسبة</th>
+                            <th>الحالة</th>
+                            <th>التاريخ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (Match m in latestMatches)
+                        {
+                            string uName = usersDict.ContainsKey(m.UserId)
+                                ? usersDict[m.UserId] : "—";
+                            decimal pct = m.MatchPercentage;
+                            string c = pct >= 80 ? "#2E7D32"
+                                     : pct >= 60 ? "#E65100" : "#C62828";
+                            string b = pct >= 80 ? "#E8F5E9"
+                                     : pct >= 60 ? "#FFF3E0" : "#FFEBEE";
+
+                            <tr>
+                                <td style="font-size:.85rem">@uName</td>
+                                <td>
+                                    <span class="badge-status"
+                                          style="background:@b;color:@c">
+                                        @pct%
+                                    </span>
+                                </td>
+                                <td style="font-size:.82rem">@m.Status</td>
+                                <td style="font-size:.82rem;color:#7a8999">
+                                    @m.MatchDate.ToString("MM/dd")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    @if(isAdmin)
+{
+    <div class="col-md-6">
+        <div class="stat-card">
+            <h6 class="fw-bold mb-3" style="color:#1565C0">
+                <i class="bi bi-pie-chart me-1"></i>
+                توزيع المستخدمين
+            </h6>
+            @foreach (dynamic r in rolesCount)
+            {
+                int rCount = (int)r.Count;
+                string rName = (string)r.Name;
+                int rolePct = usersCount > 0 ? (int)((double)rCount / usersCount * 100) : 0;
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span style="font-size:.82rem;font-weight:600">
+                            @rName
+                        </span>
+                        <span style="font-size:.82rem;color:#7a8999">
+                            @rCount (@rolePct%)
+                        </span>
+                    </div>
+                    <div style="height:6px;background:#eee;
+                        border-radius:3px">
+                        <div style="width:@rolePct%;height:100%;
+                        background:#1565C0;
+                        border-radius:3px"></div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    }
+</div>
+
+<!-- ── آخر المطابقات والتبرعات ── -->
+
+<div class="row g-3">
+    
+      <div class="col-md-6">
+          @if (isAdmin)
+          {
+            
+        <div class="da3m-table">
+           <div class="p-3 border-bottom d-flex
+                justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0" style="color:#1565C0">
+                    <i class="bi bi-shuffle me-1"></i>
+                    آخر المطابقات
+                </h6>
+                <a asp-controller="Matches" asp-action="Index"
+                       class="btn btn-sm btn-outline-primary">
+                    عرض الكل
+                </a>
+            </div>
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>المريض</th>
+                        <th>النسبة</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (Match m in latestMatches)
+                    {
+                        string uName = usersDict.ContainsKey(m.UserId)
+                            ? usersDict[m.UserId] : "—";
+                        decimal pct = m.MatchPercentage;
+                        string c = pct >= 80 ? "#2E7D32"
+                                 : pct >= 60 ? "#E65100" : "#C62828";
+                        string b = pct >= 80 ? "#E8F5E9"
+                                 : pct >= 60 ? "#FFF3E0" : "#FFEBEE";
+
+                        <tr>
+                            <td style="font-size:.85rem">@uName</td>
+                            <td>
+                                <span class="badge-status"
+                                      style="background:@b;color:@c">
+                                    @pct%
+                                </span>
+                            </td>
+                            <td style="font-size:.82rem">@m.Status</td>
+                            <td style="font-size:.82rem;color:#7a8999">@m.MatchDate.ToString("MM/dd")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+           
+        </div>
+    }
+    </div>
+ 
+    @if(isAdmin)
+    {
+    <div class="col-md-6">
+        <div class="da3m-table">
+            <div class="p-3 border-bottom d-flex
+                justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0" style="color:#AD1457">
+                    <i class="bi bi-cash-coin me-1"></i>
+                    آخر التبرعات
+                </h6>
+                <a asp-controller="Donations" asp-action="Index"
+                       class="btn btn-sm btn-outline-danger">
+                    عرض الكل
+                </a>
+            </div>
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>المتبرع</th>
+                        <th>المبلغ</th>
+                        <th>التاريخ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (Donation d in latestDonations)
+                    {
+                        string uName = usersDict.ContainsKey(d.UserId)
+                            ? usersDict[d.UserId] : "—";
+
+                        <tr>
+                            <td style="font-size:.85rem">@uName</td>
+                            <td>
+                                <span class="fw-bold"
+                                      style="color:#2E7D32">
+                                    $@d.Amount.ToString("N2")
+                                </span>
+                            </td>
+                            <td style="font-size:.82rem;color:#7a8999">
+                                @d.DonationDate.ToString("MM/dd")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    }
+
+</div>
+
+<!-- ── وصول سريع ── -->
+<div class="row g-3 mt-2">
+    <div class="col-12">
+        <div class="da3m-table p-3">
+            <h6 class="fw-bold text-primary mb-3">
+                <i class="bi bi-lightning-fill me-1"></i>
+                وصول سريع
+            </h6>
+            <div class="d-flex flex-wrap gap-2">
+
+                @if (isAdmin)
+                {
+                    <a asp-controller="Users"
+                           asp-action="Create"
+                           class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-person-plus me-1"></i>
+                        إضافة مستخدم
+                    </a>
+                }
+
+                @if (isAdmin || isManufacturer || isDonor)
+                {
+                    <a asp-controller="Prostheses"
+                           asp-action="Create"
+                           class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-robot me-1"></i>
+                        إضافة جهاز
+                    </a>
+                }
+
+                @if (isAdmin || isDoctor)
+                {
+                    <a asp-controller="Matches"
+                           asp-action="Create"
+                           class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-shuffle me-1"></i>
+                        إضافة مطابقة
+                    </a>
+                }
+
+                @if (isAdmin || isDonor)
+                {
+                    <a asp-controller="Donations"
+                           asp-action="Create"
+                           class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-cash-coin me-1"></i>
+                        إضافة تبرع
+                    </a>
+                }
+
+                @if (isAdmin || isDoctor)
+                {
+                    <a asp-controller="VisitReports"
+                           asp-action="Create"
+                           class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-file-medical me-1"></i>
+                        إضافة تقرير
+                    </a>
+                }
+
+                @if (isAdmin)
+                {
+                    <a asp-controller="Centers"
+                           asp-action="Create"
+                           class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-hospital me-1"></i>
+                        إضافة مركز
+                    </a>
+                }
+
+                @if (isAdmin || isDoctor)
+                {
+                    <a asp-controller="Measurements"
+                           asp-action="Create"
+                           class="btn btn-outline-dark btn-sm">
+                        <i class="bi bi-rulers me-1"></i>
+                        إضافة قياس
+                    </a>
+                }
+
+            </div>
+         </div>
+    
+    </div>
+</div>  

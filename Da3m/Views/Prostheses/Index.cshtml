@@ -1,0 +1,160 @@
+﻿@model IEnumerable<Da3m.Domain.Prostheses>
+@{
+    ViewData["Title"] = "الأجهزة التعويضية";
+    var dict = ViewData["UsersDict"] as Dictionary<int, string>;
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h2><i class="bi bi-robot me-2"></i>الأجهزة التعويضية</h2>
+        <p>إدارة جميع الأجهزة التعويضية في المنصة</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> إضافة جهاز
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close"
+                data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        لا توجد أجهزة مسجلة حالياً
+    </div>
+}
+else
+{
+    <!-- إحصائيات -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon mb-2"
+                     style="background:#F3E5F5">
+                    <i class="bi bi-robot"
+                       style="color:#6A1B9A"></i>
+                </div>
+                <div class="stat-num">@Model.Count()</div>
+                <div class="stat-label">إجمالي الأجهزة</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon mb-2"
+                     style="background:#E8F5E9">
+                    <i class="bi bi-check-circle"
+                       style="color:#2E7D32"></i>
+                </div>
+                <div class="stat-num">
+                    @Model.Count(d => d.IsAvailable)
+                </div>
+                <div class="stat-label">الأجهزة المتاحة</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="da3m-table">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>نوع الطرف</th>
+                    <th>الطول/العرض</th>
+                    <th>المادة</th>
+                    <th>الحالة</th>
+                    <th>الاتجاه</th>
+                    <th>المالك</th>
+                    <th>متاح</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Da3m.Domain.Prostheses device in Model)
+                {
+                    var uName = "—";
+                    if (dict != null &&
+                        dict.ContainsKey(device.UserId))
+                        uName = dict[device.UserId];
+
+                    <tr>
+                        <td>@device.DeviceId</td>
+                        <td>
+                            <span class="badge-status"
+                                  style="background:#F3E5F5;
+                                         color:#6A1B9A">
+                                <i class="bi bi-robot me-1"></i>
+                                @device.LimbType
+                            </span>
+                        </td>
+                        <td>
+                            @device.LengthCm cm /
+                            @device.WidthCm cm
+                        </td>
+                        <td>@(device.Material ?? "—")</td>
+                        <td>@(device.Condition ?? "—")</td>
+                        <td>@(device.Direction ?? "—")</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="user-avatar"
+                                     style="width:32px;height:32px;
+                                            font-size:.8rem">
+                                    @uName.Substring(0, 1)
+                                </div>
+                                <span>@uName</span>
+                            </div>
+                        </td>
+                        <td>
+                            @if (device.IsAvailable)
+                            {
+                                <span class="badge-status"
+                                      style="background:#E8F5E9;
+                                    color:#2E7D32">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    متاح
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge-status"
+                                      style="background:#FFEBEE;
+                                    color:#C62828">
+                                    <i class="bi bi-x-circle me-1"></i>
+                                    غير متاح
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Edit"
+                                       asp-route-id="@device.DeviceId"
+                                       class="btn btn-sm btn-outline-warning"
+                                       title="تعديل">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form asp-action="Delete"
+                                      asp-route-id="@device.DeviceId"
+                                      method="post"
+                                      style="display:inline"
+                                      onsubmit="return confirm(
+                                    'هل أنت متأكد من الحذف؟')">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -1,0 +1,58 @@
+﻿@{
+    ViewData["Title"] = "لوحة التحكم";
+}
+
+<div class="page-header">
+    <h2>
+        <i class="bi bi-person-heart me-2"></i>
+        مرحباً @ViewBag.CurrentUser
+    </h2>
+    <p>لوحة التحكم الخاصة بك</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#E3F2FD">
+                <i class="bi bi-rulers"
+                   style="color:#1565C0"></i>
+            </div>
+            <div class="stat-num">
+                @(ViewBag.MyMeasurementsCount ?? 0)
+            </div>
+            <div class="stat-label">قياساتي</div>
+            <a asp-controller="Measurements"
+                   asp-action="Index"
+                   class="btn btn-sm btn-outline-primary mt-2">
+                عرض القياسات
+            </a>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#E0F7FA">
+                <i class="bi bi-shuffle"
+                   style="color:#00838F"></i>
+            </div>
+            <div class="stat-num">
+                @(ViewBag.MyMatchesCount ?? 0)
+            </div>
+            <div class="stat-label">مطابقاتي</div>
+            <a asp-controller="Matches"
+                   asp-action="Index"
+                   class="btn btn-sm btn-outline-info mt-2">
+                عرض المطابقات
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="da3m-table p-3">
+    <p class="text-muted mb-0">
+        <i class="bi bi-info-circle me-1"></i>
+        للتواصل مع الطبيب أو إضافة قياسات جديدة،
+        يرجى التواصل مع الإدارة
+    </p>
+</div>

@@ -1,0 +1,127 @@
+﻿@model Da3m.Domain.Prostheses
+@{
+    ViewData["Title"] = "إضافة جهاز تعويضي";
+}
+
+<div class="page-header">
+    <h2><i class="bi bi-robot me-2"></i>إضافة جهاز تعويضي</h2>
+    <p>الجهاز سيُسجل باسمك تلقائياً</p>
+</div>
+
+<!-- ✅ بطاقة المالك -->
+<div class="alert alert-info mb-3">
+    <i class="bi bi-person-check me-2"></i>
+    <strong>المالك:</strong> @ViewBag.OwnerName
+    <input type="hidden" name="UserId"
+           value="@ViewBag.OwnerId" />
+</div>
+
+<div class="da3m-table p-4" style="max-width:600px">
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="UserId"
+               value="@ViewBag.OwnerId" />
+
+        <div class="mb-3">
+            <label asp-for="LimbType" class="form-label fw-bold">
+                نوع الطرف
+            </label>
+            <select asp-for="LimbType" class="form-select">
+                <option value="">-- اختر --</option>
+                <option value="طرف علوي">طرف علوي 🦾</option>
+                <option value="طرف سفلي">طرف سفلي 🦿</option>
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="col mb-3">
+                <label asp-for="LengthCm"
+                       class="form-label fw-bold">
+                    الطول (cm)
+                </label>
+                <input asp-for="LengthCm" class="form-control"
+                       type="number" step="0.01" />
+            </div>
+            <div class="col mb-3">
+                <label asp-for="WidthCm"
+                       class="form-label fw-bold">
+                    العرض (cm)
+                </label>
+                <input asp-for="WidthCm" class="form-control"
+                       type="number" step="0.01" />
+            </div>
+        </div>
+
+        @if (ViewBag.CurrentRole?.ToString().ToLower()
+             == "manufacturer")
+        {
+            <!-- ✅ المصنّع يحدد الكمية -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    الكمية المتاحة
+                </label>
+                <input name="Quantity" class="form-control"
+                       type="number" min="1"
+                       placeholder="عدد الأجهزة" />
+                <small class="text-muted">
+                    سيتم إضافة هذا العدد من الأجهزة
+                </small>
+            </div>
+        }
+
+        <div class="mb-3">
+            <label asp-for="Material"
+                   class="form-label fw-bold">المادة</label>
+            <input asp-for="Material" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Condition"
+                   class="form-label fw-bold">الحالة</label>
+            <select asp-for="Condition" class="form-select">
+                <option value="">-- اختر --</option>
+                <option value="جديد">جديد ✨</option>
+                <option value="مستعمل جيد">مستعمل - جيد</option>
+                <option value="مستعمل مقبول">مستعمل - مقبول</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Direction"
+                   class="form-label fw-bold">الاتجاه</label>
+            <select asp-for="Direction" class="form-select">
+                <option value="">-- اختر --</option>
+                <option value="أيمن">أيمن</option>
+                <option value="أيسر">أيسر</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Note"
+                   class="form-label fw-bold">ملاحظات</label>
+            <textarea asp-for="Note" class="form-control"
+                      rows="2"></textarea>
+        </div>
+
+        <div class="mb-4">
+            <div class="form-check form-switch">
+                <input asp-for="IsAvailable"
+                       class="form-check-input"
+                       type="checkbox" checked />
+                <label asp-for="IsAvailable"
+                       class="form-check-label fw-bold">
+                    الجهاز متاح للمطابقة
+                </label>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i> حفظ
+            </button>
+            <a asp-action="Index"
+                   class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-right me-1"></i> رجوع
+            </a>
+        </div>
+    </form>
+</div>
