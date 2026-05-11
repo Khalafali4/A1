@@ -1,85 +1,347 @@
 ﻿@model Da3m.Domain.User
-@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "إضافة مستخدم";
+    var roles = ViewBag.Roles
+        as IEnumerable<Da3m.Domain.Role>
+        ?? new List<Da3m.Domain.Role>();
+    var centers = ViewBag.Centers
+        as IEnumerable<Da3m.Domain.Center>
+        ?? new List<Da3m.Domain.Center>();
 }
 
 <div class="page-header">
-    <h2><i class="bi bi-person-plus-fill me-2"></i>إضافة مستخدم جديد</h2>
-    <p>أدخل البيانات ثم اختر الدور لإكمال التسجيل</p>
+    <h2>
+        <i class="bi bi-person-plus me-2"></i>
+        إضافة مستخدم جديد
+    </h2>
+    <p>أدخل بيانات المستخدم وتفاصيل دوره كاملاً</p>
 </div>
 
-<div class="da3m-table p-4" style="max-width:600px">
-    <form asp-action="Create" method="post">
+<div class="da3m-table p-4" style="max-width:680px">
+    <form asp-action="Create" method="post"
+          id="createForm">
         @Html.AntiForgeryToken()
 
-        <div class="mb-3">
-            <label asp-for="FullName" class="form-label fw-bold">
-                الاسم الكامل
-            </label>
-            <input asp-for="FullName" class="form-control"
-                   placeholder="أدخل الاسم الكامل" />
-            <span asp-validation-for="FullName"
-                  class="text-danger small"></span>
+        <!-- ── البيانات الأساسية ── -->
+        <div class="mb-4 p-3 rounded"
+             style="background:#F8F9FA">
+            <h6 class="fw-bold mb-3"
+                style="color:#1565C0">
+                <i class="bi bi-person me-1"></i>
+                البيانات الأساسية
+            </h6>
+
+            <div class="mb-3">
+                <label asp-for="FullName"
+                       class="form-label fw-bold">
+                    الاسم الكامل
+                    <span class="text-danger">*</span>
+                </label>
+                <input asp-for="FullName"
+                       class="form-control"
+                       placeholder="أدخل الاسم الكامل"
+                       required />
+                <span asp-validation-for="FullName"
+                      class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email"
+                       class="form-label fw-bold">
+                    البريد الإلكتروني
+                    <span class="text-danger">*</span>
+                </label>
+                <input asp-for="Email"
+                       class="form-control"
+                       type="email"
+                       placeholder="example@mail.com"
+                       required />
+                <span asp-validation-for="Email"
+                      class="text-danger small"></span>
+            </div>
+
+            <div class="row">
+                <div class="col mb-3">
+                    <label asp-for="Phone"
+                           class="form-label fw-bold">
+                        الهاتف
+                    </label>
+                    <input asp-for="Phone"
+                           class="form-control"
+                           placeholder="05xxxxxxxx" />
+                </div>
+                <div class="col mb-3">
+                    <label asp-for="Password"
+                           class="form-label fw-bold">
+                        كلمة المرور
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Password"
+                           class="form-control"
+                           type="password"
+                           placeholder="6 أحرف على الأقل"
+                           minlength="6"
+                           required />
+                </div>
+            </div>
+
+            <div class="mb-0">
+                <label asp-for="RoleId"
+                       class="form-label fw-bold">
+                    الدور
+                    <span class="text-danger">*</span>
+                </label>
+                <select asp-for="RoleId"
+                        class="form-select"
+                        onchange="showRoleFields(this.value)"
+                        required>
+                    <option value="">-- اختر الدور --</option>
+                    @foreach (var r in roles)
+                    {
+                        <option value="@r.RoleId"
+                                data-role="@r.RoleName.ToLower()">
+                            @r.RoleName
+                        </option>
+                    }
+                </select>
+            </div>
         </div>
-
-        <div class="mb-3">
-            <label asp-for="Email" class="form-label fw-bold">
-                البريد الإلكتروني
-            </label>
-            <input asp-for="Email" class="form-control"
-                   placeholder="example@mail.com" />
-            <span asp-validation-for="Email"
-                  class="text-danger small"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="Phone" class="form-label fw-bold">
-                رقم الهاتف
-            </label>
-            <input asp-for="Phone" class="form-control"
-                   placeholder="09xxxxxxxx" />
-            <span asp-validation-for="Phone"
-                  class="text-danger small"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="Password" class="form-label fw-bold">
-                كلمة المرور
-            </label>
-            <input asp-for="Password" type="password"
-                   class="form-control" />
-            <span asp-validation-for="Password"
-                  class="text-danger small"></span>
-        </div>
-
-        <div class="mb-4">
-            <label asp-for="RoleId" class="form-label fw-bold">
-                الدور
-            </label>
-            <select asp-for="RoleId" class="form-select"
-                    asp-items="@(new SelectList(
-                                                (IEnumerable<Da3m.Domain.Role>)ViewBag.Roles, "RoleId", "RoleName"))">
-                <option value="">-- اختر الدور --</option>
-            </select>
-            <span asp-validation-for="RoleId"
-                  class="text-danger small"></span>
-
-            <!-- تلميح للمستخدم -->
-            <div class="mt-2 p-2 rounded"
-                 style="background:#E3F2FD; font-size:.82rem; color:#1565C0">
-                <i class="bi bi-info-circle me-1"></i>
-                بعد الحفظ ستنتقل تلقائياً لإكمال بيانات الدور المختار
+        <!-- ── تفاصيل المريض ── -->
+        <div id="fields-patient" class="role-fields
+            mb-4 p-3 rounded"
+             style="background:#FCE4EC;display:none">
+            <h6 class="fw-bold mb-3"
+                style="color:#AD1457">
+                <i class="bi bi-person-heart me-1"></i>
+                بيانات المريض
+            </h6>
+            <div class="row">
+                <div class="col mb-3">
+                    <label class="form-label fw-bold">
+                        الرقم الوطني
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input name="NationalId"
+                           class="form-control"
+                           placeholder="الرقم الوطني" />
+                </div>
+                <div class="col mb-3">
+                    <label class="form-label fw-bold">
+                        تاريخ الميلاد
+                    </label>
+                    <input name="BirthDateStr"
+                           class="form-control"
+                           type="date" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col mb-3">
+                    <label class="form-label fw-bold">
+                        الجنس
+                    </label>
+                    <select name="Gender"
+                            class="form-select">
+                        <option value="">-- اختر --</option>
+                        <option value="ذكر">ذكر</option>
+                        <option value="أنثى">أنثى</option>
+                    </select>
+                </div>
+                <div class="col mb-3">
+                    <label class="form-label fw-bold">
+                        العنوان
+                    </label>
+                    <input name="Address"
+                           class="form-control"
+                           placeholder="المدينة" />
+                </div>
+            </div>
+            <div class="mb-0">
+                <label class="form-label fw-bold">
+                    نوع الإعاقة
+                    <span class="text-danger">*</span>
+                </label>
+                <input name="DisabilityType"
+                       class="form-control"
+                       placeholder="مثال: بتر طرف علوي أيمن" />
             </div>
         </div>
 
+        <!-- ── تفاصيل الطبيب ── -->
+        <div id="fields-doctor" class="role-fields
+            mb-4 p-3 rounded"
+             style="background:#E8F5E9;display:none">
+            <h6 class="fw-bold mb-3"
+                style="color:#2E7D32">
+                <i class="bi bi-person-badge me-1"></i>
+                بيانات الطبيب
+            </h6>
+            <div class="row">
+                <div class="col mb-3">
+                    <label class="form-label fw-bold">
+                        التخصص
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input name="Specialty"
+                           class="form-control"
+                           placeholder="مثال: طب تأهيلي" />
+                </div>
+                <div class="col mb-3">
+                    <label class="form-label fw-bold">
+                        رقم الترخيص
+                    </label>
+                    <input name="LicenseNumber"
+                           class="form-control"
+                           placeholder="رقم الترخيص" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col mb-3">
+                    <label class="form-label fw-bold">
+                        المستشفى
+                    </label>
+                    <input name="HospitalName"
+                           class="form-control"
+                           placeholder="اسم المستشفى" />
+                           </div>
+                <div class="col mb-3">
+                    <label class="form-label fw-bold">
+                        المركز
+                    </label>
+                    <select name="CenterId"
+                            class="form-select">
+                        <option value="">
+                            -- اختر المركز --
+                        </option>
+                        @foreach (var c in centers)
+                        {
+                            <option value="@c.CenterId">
+                                @c.CenterName
+                            </option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── تفاصيل المتبرع ── -->
+        <div id="fields-donor" class="role-fields
+             mb-4 p-3 rounded"
+             style="background:#FFF3E0;display:none">
+            <h6 class="fw-bold mb-3"
+                style="color:#E65100">
+                <i class="bi bi-gift me-1"></i>
+                بيانات المتبرع
+            </h6>
+            <div class="mb-0">
+                <label class="form-label fw-bold">
+                    نوع التبرع المفضّل
+                </label>
+                <select name="PreferredDonationType"
+                        class="form-select">
+                    <option value="">-- اختر --</option>
+                    <option value="مالي">تبرع مالي 💰</option>
+                    <option value="جهاز تعويضي">
+                        جهاز تعويضي 🦾
+                    </option>
+                    <option value="مالي وعيني">
+                        مالي وعيني
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ── تفاصيل المصنّع ── -->
+        <div id="fields-manufacturer" class="role-fields
+             mb-4 p-3 rounded"
+             style="background:#F3E5F5;display:none">
+            <h6 class="fw-bold mb-3"
+                style="color:#6A1B9A">
+                <i class="bi bi-building me-1"></i>
+                بيانات الشركة
+            </h6>
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    اسم الشركة
+                    <span class="text-danger">*</span>
+                </label>
+                <input name="CompanyName"
+                       class="form-control"
+                       placeholder="اسم الشركة" />
+            </div>
+            <div class="row">
+                <div class="col mb-3">
+                    <label class="form-label fw-bold">
+                        السجل التجاري
+                    </label>
+                    <input name="CommercialRegister"
+                           class="form-control"
+                           placeholder="رقم السجل" />
+                </div>
+                <div class="col mb-3">
+                    <label class="form-label fw-bold">
+                        الموقع الإلكتروني
+                    </label>
+                    <input name="Website"
+                           class="form-control"
+                           placeholder="https://..." />
+                </div>
+            </div>
+        </div>
+
+        <!-- أزرار -->
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-arrow-left me-1"></i> حفظ والمتابعة
+            <button type="submit"
+                    class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>
+                حفظ المستخدم كاملاً
             </button>
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-right me-1"></i> رجوع
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-right me-1"></i>
+                رجوع
             </a>
         </div>
     </form>
 </div>
+
+@section Scripts {
+<script>
+    // ✅ قراءة أسماء الأدوار من الـ options
+    var roleNames = {};
+    document.querySelectorAll('#RoleId option')
+        .forEach(opt => {
+            if (opt.value)
+                roleNames[opt.value] =
+                    opt.dataset.role || '';
+        });
+
+    function showRoleFields(roleId) {
+        // إخفاء كل الحقول
+        document.querySelectorAll('.role-fields')
+            .forEach(f => f.style.display = 'none');
+                if (!roleId) return;
+
+            var roleName = roleNames[roleId] || '';
+
+            if (roleName.includes('patient') ||
+                roleName.includes('مريض'))
+                document.getElementById('fields-patient')
+                    .style.display = 'block';
+
+            else if (roleName.includes('doctor') ||
+                     roleName.includes('طبيب'))
+                document.getElementById('fields-doctor')
+                    .style.display = 'block';
+
+            else if (roleName.includes('donor') ||
+                     roleName.includes('متبرع'))
+                document.getElementById('fields-donor')
+                    .style.display = 'block';
+
+            else if (roleName.includes('manufacturer') ||
+                     roleName.includes('مصنع'))
+                document.getElementById('fields-manufacturer')
+                    .style.display = 'block';
+        }
+    </script>
+}

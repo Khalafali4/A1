@@ -191,5 +191,58 @@ namespace Da3m.Controllers
             TempData["Success"] = "تم حذف الجهاز بنجاح";
             return RedirectToAction(nameof(Index));
         }
+
+        // ── GET: Prostheses/Available ────────
+        [HttpGet]
+        public async Task<IActionResult> Available()
+        {
+            if (!IsAdmin()) return AccessDenied();
+            ViewData["Title"] = "الأجهزة المتاحة";
+
+            var all = await _context.Prostheses.GetAllAsync();
+            var available = all.Where(p => p.IsAvailable).ToList();
+
+            var users = await _context.Users.GetAllAsync();
+            ViewData["UsersDict"] = users
+                .ToDictionary(u => u.UserId, u => u.FullName);
+
+            return View(available);
+        }
+
+        // ── GET: Prostheses/Unavailable ──────
+        [HttpGet]
+        public async Task<IActionResult> Unavailable()
+        {
+            if (!IsAdmin()) return AccessDenied();
+            ViewData["Title"] = "الأجهزة غير المتاحة";
+
+            var all = await _context.Prostheses.GetAllAsync();
+            var unavailable = all
+                .Where(p => !p.IsAvailable)
+                .ToList();
+
+            var users = await _context.Users.GetAllAsync();
+            ViewData["UsersDict"] = users
+                .ToDictionary(u => u.UserId, u => u.FullName);
+
+            return View(unavailable);
+        }
+
+        // ── POST: Toggle IsAvailable ─────────
+        [HttpPost]
+        public async Task<IActionResult> ToggleAvailable(int id)
+        {
+            var device = await _context.Prostheses.GetByIdAsync(id);
+            if (device == null) return NotFound();
+
+            device.IsAvailable = !device.IsAvailable;
+            _context.Prostheses.Update(device);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = device.IsAvailable
+                ? "تم تفعيل الجهاز" : "تم إيقاف الجهاز";
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

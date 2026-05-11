@@ -19,7 +19,7 @@ namespace Da3m.Domain
 
         [MaxLength(100)]
         public string? HospitalName { get; set; }
-        public bool IsDeletd { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
 
         public int? CenterId { get; set; }
 

@@ -1,145 +1,178 @@
-﻿using Da3m.Data;
-using Da3m.Data.Repositories;
+﻿using Da3m.Data.Repositories;
 using Da3m.Domain;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Da3m.Controllers
 {
     public class DonorDetailsController : BaseController
     {
-        
-            private readonly IUnitOfWork _context;
+        private readonly IUnitOfWork _context;
 
-            public DonorDetailsController(IUnitOfWork context)
-            {
-                _context = context;
-            }
+        public DonorDetailsController(IUnitOfWork context)
+        {
+            _context = context;
+        }
 
-        // ── GET: Donors ─────────────────────
+        // ── GET: Index ──────────────────────
+        // ── GET: Index ──────────────────────
         public async Task<IActionResult> Index()
         {
+            if (!IsAdmin()) return AccessDenied();
             ViewData["Title"] = "المتبرعون";
 
-            // ✅ متبرع يرى بياناته فقط
-            if (IsDonor())
-            {
-                var userId = int.Parse(HttpContext.Session
-                    .GetString("UserId") ?? "0");
-                var myDetail = await _context.DonorDetails
-                    .GetByIdAsync(userId);
+            var all = await _context.DonorDetails.GetAllAsync();
+            var donors = all
+                .Where(d => !d.IsDeleted)
+                .ToList();
 
-                var users = await _context.Users.GetAllAsync();
-                ViewData["UsersDict"] = users
-                    .ToDictionary(u => u.UserId, u => u.FullName);
-
-                var list = myDetail != null
-                    ? new List<DonorDetail> { myDetail }
-                    : new List<DonorDetail>();
-
-                return View(list);
-            }
-
-            // Admin يرى الكل
-            if (!IsAdmin()) return AccessDenied();
-
-            var donors = await _context.DonorDetails.GetAllAsync();
-            var allUsers = await _context.Users.GetAllAsync();
-            ViewData["UsersDict"] = allUsers
+            var users = await _context.Users.GetAllAsync();
+            ViewData["UsersDict"] = users
                 .ToDictionary(u => u.UserId, u => u.FullName);
+
+            // ✅ الحل — قاموسان منفصلان بدل Anonymous Type
+            var donations = await _context.Donations
+                .FindAsync(d => !d.IsDeleted);
+
+            ViewBag.DonationCounts = donations
+                .GroupBy(d => d.UserId)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            ViewBag.DonationTotals = donations
+                .GroupBy(d => d.UserId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(x => x.Amount));
+
+            ViewBag.GrandTotal = donations.Sum(d => d.Amount);
+            ViewBag.TotalOps = donations.Count();
 
             return View(donors);
         }
 
-        // ── GET: Donors/Create ──────────────
-        public IActionResult Create(int userId)
-            {
-                ViewData["Title"] = "إضافة متبرع";
-                var donor = new DonorDetail { UserId = userId };
-                return View(donor);
-            }
-
-        // ── POST: Donors/Create ─────────────
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(DonorDetail donor)
+        // ── GET: Details ────────────────────
+        public async Task<IActionResult> Details(int id)
         {
-            ModelState.Remove("User");
-            ModelState.Remove("TotalDonatedAmount");
+            if (!IsAdmin()) return AccessDenied();
+            ViewData["Title"] = "تفاصيل المتبرع";
 
-            if (ModelState.IsValid)
-            {
-                await _context.DonorDetails.AddAsync(donor);
-                await _context.SaveChangesAsync();
+            var donor = await _context.DonorDetails
+                .GetByIdAsync(id);
+            if (donor == null || donor.IsDeleted)
+                return NotFound();
 
-                // ✅ إضافة تلقائية للتبرعات
-                if ((donor.PreferredDonationType == "مالي" ||
-                     donor.PreferredDonationType == "كلاهما") &&
-                     donor.TotalDonatedAmount.HasValue &&
-                     donor.TotalDonatedAmount > 0)
-                {
-                    var donation = new Donation
-                    {
-                        UserId = donor.UserId,
-                        Amount = donor.TotalDonatedAmount.Value,
-                        DonationDate = DateTime.Now,
-                        Note = "تبرع أولي عند التسجيل"
-                    };
-                    await _context.Donations.AddAsync(donation);
-                    await _context.SaveChangesAsync();
-                }
+            var user = await _context.Users.GetByIdAsync(id);
+            ViewBag.UserName = user?.FullName ?? "—";
+            ViewBag.UserEmail = user?.Email ?? "—";
+            ViewBag.UserPhone = user?.Phone ?? "—";
 
-                TempData["Success"] = "تم تسجيل المتبرع بنجاح";
-                return RedirectToAction(nameof(Index));
-            }
+            // ✅ جيب تبرعاته من جدول Donation
+            var donations = await _context.Donations
+                .FindAsync(d => d.UserId == id
+                    && !d.IsDeleted);
+
+            ViewBag.Donations = donations
+                .OrderByDescending(d => d.DonationDate)
+                .ToList();
+
+            ViewBag.TotalAmount = donations.Sum(d => d.Amount);
+            ViewBag.DonationsCount = donations.Count();
+
+            // ✅ أجهزته
+            var devices = await _context.Prostheses
+                .FindAsync(p => p.UserId == id);
+            ViewBag.DevicesCount = devices.Count();
+
             return View(donor);
         }
 
-        // ── GET: Donors/Edit/5 ──────────────
-        public async Task<IActionResult> Edit(int id)
-            {
-                ViewData["Title"] = "تعديل بيانات المتبرع";
-                var donor = await _context.DonorDetails.GetByIdAsync(id);
-                if (donor == null) return NotFound();
-                return View(donor);
-            }
+        // ── Soft Delete ─────────────────────
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            if (!IsAdmin()) return AccessDenied();
 
-            // ── POST: Donors/Edit/5 ─────────────
-            [HttpPost]
-            [ValidateAntiForgeryToken]
-            public async Task<IActionResult> Edit(int id, DonorDetail donor)
-            {
-                if (id != donor.UserId) return NotFound();
-                ModelState.Remove("User");
+            var donor = await _context.DonorDetails
+                .GetByIdAsync(id);
+            if (donor == null) return NotFound();
 
-                if (ModelState.IsValid)
-                {
-                    _context.DonorDetails.Update(donor);
-                    await _context.SaveChangesAsync();
-                    TempData["Success"] = "تم تعديل بيانات المتبرع بنجاح";
-                    return RedirectToAction(nameof(Index));
-                }
-                return View(donor);
-            }
+            donor.IsDeleted = true;
+            _context.DonorDetails.Update(donor);
+            await _context.SaveChangesAsync();
 
-            // ── POST: Donors/Delete/5 ───────────
-            [HttpPost, ActionName("Delete")]
-            [ValidateAntiForgeryToken]
-            public async Task<IActionResult> DeleteConfirmed(int id)
+            TempData["Success"] = "تم إيقاف المتبرع بنجاح";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // ── Complete (تسجيل جديد) ───────────
+        public IActionResult Complete(int userId = 0)
+        {
+            ViewData["Title"] = "إكمال بيانات المتبرع";
+            if (userId == 0)
+                userId = int.Parse(HttpContext.Session
+                    .GetString("UserId") ?? "0");
+
+            ViewBag.DonorUserId = userId;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Complete(
+            DonorDetail donor)
+        {
+            ModelState.Remove("User");
+
+            if (ModelState.IsValid)
             {
-                var donor = await _context.DonorDetails.GetByIdAsync(id);
-                if (donor == null) return NotFound();
-                _context.DonorDetails.Delete(donor);
+                donor.IsDeleted = false;
+                donor.TotalDonatedAmount = 0;
+                donor.DonatedDevicesCount = 0;
+                await _context.DonorDetails.AddAsync(donor);
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "تم حذف المتبرع بنجاح";
-                return RedirectToAction(nameof(Index));
-            }
-      
-    }
+                HttpContext.Session.SetString(
+                    "ProfileCompleted", "true");
 
+                TempData["Success"] =
+                    "مرحباً! تم إكمال تسجيلك";
+                return RedirectToAction("Index", "Home");
+            }
+
+            ViewBag.DonorUserId = donor.UserId;
+            return View(donor);
+        }
+
+        // ── Create (Admin) ──────────────────
+        public IActionResult Create(int userId = 0)
+        {
+            if (!IsAdmin()) return AccessDenied();
+            ViewData["Title"] = "إضافة متبرع";
+            ViewBag.DonorUserId = userId;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(
+            DonorDetail donor)
+        {
+            if (!IsAdmin()) return AccessDenied();
+            ModelState.Remove("User");
+
+            if (ModelState.IsValid)
+            {
+                donor.IsDeleted = false;
+                donor.TotalDonatedAmount = 0;
+                donor.DonatedDevicesCount = 0;
+                await _context.DonorDetails.AddAsync(donor);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] =
+                    "تم إضافة المتبرع بنجاح";
+                return RedirectToAction("Index", "Users");
+            }
+
+            return View(donor);
+        }
+    }
 }

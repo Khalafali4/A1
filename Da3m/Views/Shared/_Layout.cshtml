@@ -360,19 +360,32 @@
         @ViewData["Title"]
     </div>
     <div class="topbar-user">
-        <span style="font-size:.82rem;color:#7a8999;font-weight:600">
+        <span style="font-size:.82rem;color:#7a8999;
+                     font-weight:600">
             @(ViewBag.CurrentRole ?? "")
         </span>
-        <div class="user-avatar">
-            @((ViewBag.CurrentUser as string ?? "م").Substring(0, 1))
-        </div>
-        <span style="font-size:.85rem;font-weight:700;
-                     color:#1565C0">
-            @(ViewBag.CurrentUser ?? "")
-        </span>
+
+        <!-- ✅ Avatar قابل للنقر -->
+        <a asp-controller="Account"
+           asp-action="Profile"
+           class="d-flex align-items-center gap-2
+                  text-decoration-none">
+            <div class="user-avatar">
+                @{
+                    var uName = ViewBag.CurrentUser as string ?? "م";
+                }
+                @uName.Substring(0, 1)
+            </div>
+            <span style="font-size:.85rem;font-weight:700;
+                         color:#1565C0">
+                @(ViewBag.CurrentUser ?? "")
+            </span>
+        </a>
+
         <a href="@Url.Action("Logout","Account")"
            class="btn btn-sm btn-outline-danger ms-2"
-           onclick="return confirm('هل تريد تسجيل الخروج؟')">
+           onclick="return confirm(
+               'هل تريد تسجيل الخروج؟')">
             <i class="bi bi-box-arrow-right"></i>
         </a>
     </div>

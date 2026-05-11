@@ -1,0 +1,595 @@
+﻿@model Da3m.Domain.User
+@{
+    ViewData["Title"] = "ملفي الشخصي";
+    var role = ViewBag.CurrentRole as string ?? "";
+    bool isPatient      = role.ToLower() == "patient"
+                       || role == "مريض";
+    bool isDoctor       = role.ToLower() == "doctor"
+                       || role == "طبيب";
+    bool isDonor        = role.ToLower() == "donor"
+                       || role == "متبرع";
+    bool isManufacturer = role.ToLower() == "manufacturer"
+                       || role == "مصنع";
+}
+
+<div class="page-header d-flex justify-content-between
+             align-items-center">
+    <div>
+        <h2>
+            <i class="bi bi-person-circle me-2"></i>
+            ملفي الشخصي
+        </h2>
+        <p>بياناتك الشخصية وتفاصيل حسابك</p>
+    </div>
+    <a asp-action="EditProfile"
+       class="btn btn-warning">
+        <i class="bi bi-pencil me-1"></i>
+        تعديل البيانات
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>
+        @TempData["Success"]
+        <button type="button" class="btn-close"
+                data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-3">
+
+    <!-- البطاقة الشخصية -->
+    <div class="col-md-4">
+        <div class="da3m-table p-4 text-center">
+            <div class="user-avatar mx-auto mb-3"
+                 style="width:80px;height:80px;
+                        font-size:2rem;
+                        background:linear-gradient(
+                            135deg,#1565C0,#00ACC1)">
+                @Model.FullName.Substring(0, 1)
+            </div>
+
+            <h5 class="fw-bold mb-1">@Model.FullName</h5>
+
+            <span class="badge-status d-inline-block mb-3"
+                  style="background:#E3F2FD;color:#1565C0">
+                <i class="bi bi-shield me-1"></i>
+                @role
+            </span>
+
+            <hr />
+
+            <div class="text-start">
+                <div class="mb-3">
+                    <div class="text-muted"
+                         style="font-size:.78rem">
+                        <i class="bi bi-envelope me-1"></i>
+                        البريد الإلكتروني
+                    </div>
+                    <div class="fw-bold"
+                         style="font-size:.88rem">
+                        @Model.Email
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-muted"
+                         style="font-size:.78rem">
+                        <i class="bi bi-phone me-1"></i>
+                        الهاتف
+                    </div>
+                    <div class="fw-bold"
+                         style="font-size:.88rem">
+                        @Model.Phone
+                    </div>
+                </div>
+                <div>
+                    <div class="text-muted"
+                         style="font-size:.78rem">
+                        <i class="bi bi-calendar me-1"></i>
+                        تاريخ التسجيل
+                    </div>
+                    <div class="fw-bold"
+                         style="font-size:.88rem">
+                        @Model.CreatedAt.ToString("yyyy/MM/dd")
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            <a asp-action="EditProfile"
+               class="btn btn-outline-warning w-100">
+                <i class="bi bi-pencil me-1"></i>
+                تعديل البيانات الأساسية
+            </a>
+        </div>
+    </div>
+
+    <!-- التفاصيل حسب الدور -->
+    <div class="col-md-8">
+
+        @if (isPatient)
+        {
+            var detail = ViewBag.PatientDetail
+                as Da3m.Domain.PatientDetail;
+            var measurements = ViewBag.Measurements
+                as List<Da3m.Domain.Measurement>
+                    ?? new List<Da3m.Domain.Measurement>();
+            var matches = ViewBag.Matches
+                as List<Da3m.Domain.Match>
+                ?? new List<Da3m.Domain.Match>();
+            var devicesDict = ViewBag.DevicesDict
+                as Dictionary<int, string>
+                ?? new Dictionary<int, string>();
+
+            <!-- البيانات الطبية -->
+            <div class="da3m-table p-4 mb-3">
+                <div class="d-flex justify-content-between
+                             align-items-center mb-3">
+                    <h6 class="fw-bold mb-0"
+                        style="color:#1565C0">
+                        <i class="bi bi-clipboard-pulse me-1"></i>
+                        بياناتي الطبية
+                    </h6>
+                    <a asp-controller="PatientDetails"
+                       asp-action="Edit"
+                       asp-route-id="@Model.UserId"
+                       class="btn btn-sm btn-outline-warning">
+                        <i class="bi bi-pencil me-1"></i>تعديل
+                    </a>
+                </div>
+
+                @if (detail != null)
+                {
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="p-2 rounded"
+                                 style="background:#F8F9FA">
+                                <div class="text-muted"
+                                     style="font-size:.75rem">
+                                    الرقم الوطني
+                                </div>
+                                <div class="fw-bold"
+                                     style="font-size:.88rem">
+                                    @detail.NationalId
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded"
+                                 style="background:#F8F9FA">
+                                <div class="text-muted"
+                                     style="font-size:.75rem">
+                                    الجنس
+                                </div>
+                                <div class="fw-bold"
+                                     style="font-size:.88rem">
+                                    @(detail.Gender ?? "—")
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded"
+                                 style="background:#F8F9FA">
+                                <div class="text-muted"
+                                     style="font-size:.75rem">
+                                    تاريخ الميلاد
+                                </div>
+                                <div class="fw-bold"
+                                     style="font-size:.88rem">
+                                    @detail.BirthDate
+                                        .ToString("yyyy/MM/dd")
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded"
+                                 style="background:#FCE4EC">
+                                <div class="text-muted"
+                                     style="font-size:.75rem;
+                                            color:#AD1457">
+                                    نوع الإعاقة
+                                </div>
+                                <div class="fw-bold"
+                                     style="color:#AD1457;
+                                            font-size:.88rem">
+                                    @(detail.DisabilityType ?? "—")
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning py-2 mb-0">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        لم تكتمل بياناتك الطبية —
+                        <a asp-controller="PatientDetails"
+                           asp-action="Create"
+                           asp-route-userId="@Model.UserId">
+                            أضفها الآن
+                        </a>
+                    </div>
+                }
+            </div>
+
+            <!-- قياساتي -->
+            <div class="da3m-table p-4 mb-3">
+                <div class="d-flex justify-content-between
+                             align-items-center mb-3">
+                    <h6 class="fw-bold mb-0"
+                        style="color:#1565C0">
+                        <i class="bi bi-rulers me-1"></i>
+                        قياساتي (@measurements.Count)
+                    </h6>
+                    <a asp-controller="Measurements"
+                       asp-action="Create"
+                       class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i>إضافة
+                    </a>
+                </div>
+                @if (!measurements.Any())
+                {
+                    <p class="text-muted mb-0"
+                       style="font-size:.85rem">
+                        لا توجد قياسات مسجلة
+                    </p>
+                }
+                else
+                {
+                    foreach (var m in measurements.Take(3))
+                    {
+                        <div class="d-flex justify-content-between
+                                     align-items-center p-2
+                                     rounded mb-2"
+                             style="background:#F8F9FA">
+                            <span class="badge-status"
+                                  style="background:#F3E5F5;
+                                         color:#6A1B9A;
+                                         font-size:.78rem">
+                                @m.LimbType
+                            </span>
+                            <span style="font-size:.82rem;
+                                         color:#1565C0;
+                                         font-weight:700">
+                                @m.LengthCm × @m.WidthCm cm
+                            </span>
+                            <span style="font-size:.75rem;
+                                         color:#7a8999">
+                                @m.MeasuredAt.ToString("MM/dd/yyyy")
+                            </span>
+                        </div>
+                    }
+                    @if (measurements.Count > 3)
+                    {
+                        <a asp-controller="Measurements"
+                           asp-action="Index"
+                           class="btn btn-sm btn-outline-primary
+                                  w-100 mt-1">
+                            عرض الكل (@measurements.Count)
+                        </a>
+                    }
+                }
+            </div>
+
+            <!-- مطابقاتي -->
+            <div class="da3m-table p-4">
+                <h6 class="fw-bold mb-3"
+                    style="color:#00838F">
+                    <i class="bi bi-shuffle me-1"></i>
+                    مطابقاتي (@matches.Count)
+                </h6>
+                @if (!matches.Any())
+                {
+                    <p class="text-muted mb-0"
+                       style="font-size:.85rem">
+                        لا توجد مطابقات
+                    </p>
+                }
+                else
+                {foreach (var m in matches.Take(3))
+                    {
+                        var dName = devicesDict
+                            .ContainsKey(m.DeviceId)
+                            ? devicesDict[m.DeviceId] : "—";
+                        var pct   = m.MatchPercentage;
+                        var color = pct >= 99 ? "#1B5E20"
+                                  : pct >= 85 ? "#2E7D32"
+                                  : pct >= 70 ? "#E65100"
+                                  : "#C62828";
+                        var bg    = pct >= 99 ? "#E8F5E9"
+                                  : pct >= 85 ? "#F9FBE7"
+                                  : pct >= 70 ? "#FFF3E0"
+                                  : "#FFEBEE";
+
+                        <div class="p-2 rounded mb-2"
+                             style="background:#F8F9FA">
+                            <div class="d-flex
+                                         justify-content-between
+                                         align-items-center mb-1">
+                                <span style="font-size:.82rem;
+                                             font-weight:600">
+                                    <i class="bi bi-robot me-1"
+                                       style="color:#6A1B9A"></i>
+                                    @dName
+                                </span>
+                                <span class="badge-status"
+                                      style="background:@bg;
+                                             color:@color;
+                                             font-size:.75rem">
+                                    @pct%
+                                </span>
+                            </div>
+                            <div style="height:5px;
+                                        background:#E0E0E0;
+                                        border-radius:3px">
+                                <div style="width:@pct%;
+                                            height:100%;
+                                            background:@color;
+                                            border-radius:3px">
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        }
+
+        @if (isDoctor)
+        {
+            var detail = ViewBag.DoctorDetail
+                as Da3m.Domain.Doctor;
+            var centersDict = ViewBag.CentersDict
+                as Dictionary<int, string>
+                ?? new Dictionary<int, string>();
+
+            <div class="da3m-table p-4">
+                <div class="d-flex justify-content-between
+                             align-items-center mb-3">
+                    <h6 class="fw-bold mb-0"
+                        style="color:#1565C0">
+                        <i class="bi bi-person-badge me-1"></i>
+                        بياناتي الطبية
+                    </h6>
+                    @if (detail != null)
+                    {
+                        <a asp-controller="Doctors"
+                           asp-action="Edit"
+                           asp-route-id="@Model.UserId"
+                           class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-pencil me-1"></i>تعديل
+                        </a>
+                    }
+                </div>
+
+                @if (detail != null)
+                {
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded"
+                                 style="background:#F8F9FA">
+                                <div class="text-muted"
+                                     style="font-size:.78rem">
+                                    التخصص
+                                    </div>
+                                <div class="fw-bold">
+                                    @(detail.Specialty ?? "—")
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded"
+                                 style="background:#F8F9FA">
+                                <div class="text-muted"
+                                     style="font-size:.78rem">
+                                    رقم الترخيص
+                                </div>
+                                <div class="fw-bold">
+                                    @(detail.LicenseNumber ?? "—")
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded"
+                                 style="background:#F8F9FA">
+                                <div class="text-muted"
+                                     style="font-size:.78rem">
+                                    المستشفى
+                                </div>
+                                <div class="fw-bold">
+                                    @(detail.HospitalName ?? "—")
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded"
+                                 style="background:#E3F2FD">
+                                <div class="text-muted"
+                                     style="font-size:.78rem;
+                                            color:#1565C0">
+                                    المركز
+                                </div>
+                                <div class="fw-bold"
+                                     style="color:#1565C0">
+                                    @{
+                                        var cName = detail.CenterId
+                                            .HasValue &&
+                                            centersDict.ContainsKey(
+                                                detail.CenterId.Value)
+                                            ? centersDict[
+                                                detail.CenterId.Value]
+                                            : "—";
+                                    }
+                                    @cName
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning py-2 mb-0">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        لم تكتمل بياناتك —
+                        <a asp-controller="Doctors"
+                           asp-action="Create"
+                           asp-route-userId="@Model.UserId">
+                            أضفها الآن
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (isDonor)
+        {
+            var detail = ViewBag.DonorDetail
+                as Da3m.Domain.DonorDetail;
+            var donations = ViewBag.MyDonations
+                as List<Da3m.Domain.Donation>
+                ?? new List<Da3m.Domain.Donation>();
+
+            <div class="da3m-table p-4">
+                <h6 class="fw-bold mb-3"
+                    style="color:#AD1457">
+                    <i class="bi bi-gift me-1"></i>
+                    بيانات التبرع
+                </h6>
+
+                @if (detail != null)
+                {
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <div class="p-3 rounded text-center"
+                                 style="background:#FCE4EC">
+                                <div class="fw-bold"
+                                     style="color:#AD1457;
+                                            font-size:1.4rem">
+                                    $@(detail.TotalDonatedAmount ?.ToString("N0") ?? "0")
+                                </div>
+                                <div style="font-size:.78rem;
+                                            color:#7a8999">
+                                    إجمالي التبرعات
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded text-center"
+                                 style="background:#E8F5E9">
+                                <div class="fw-bold"
+                                     style="color:#2E7D32;
+                                            font-size:1.4rem">
+                                    @donations.Count
+                                </div>
+                                <div style="font-size:.78rem;
+                                            color:#7a8999">
+                                    عدد التبرعات
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded text-center"
+                                 style="background:#F3E5F5">
+                                <div class="fw-bold"
+                                     style="color:#6A1B9A;
+                                            font-size:1.4rem">
+                                    @(detail.DonatedDevicesCount ?? 0)
+                                </div>
+                                <div style="font-size:.78rem;
+                                            color:#7a8999">
+                                    أجهزة متبرع بها
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="d-flex gap-2">
+                    <a asp-controller="Donations"
+                       asp-action="Create"
+                       class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-cash-coin me-1"></i>
+                        إضافة تبرع مالي
+                    </a>
+                    <a asp-controller="Prostheses"
+                       asp-action="Create"
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-robot me-1"></i>
+                        التبرع بجهاز
+                    </a>
+                </div>
+            </div>
+        }
+
+        @if (isManufacturer)
+        {
+            var detail = ViewBag.ManufacturerDetail
+                as Da3m.Domain.ManufacturerDetail;
+            var myDevices = ViewBag.MyDevices
+                as List<Da3m.Domain.Prostheses>
+                ?? new List<Da3m.Domain.Prostheses>();
+
+            <div class="da3m-table p-4">
+                <h6 class="fw-bold mb-3"
+                    style="color:#1565C0">
+                    <i class="bi bi-building me-1"></i>
+                    بيانات الشركة
+                </h6>
+
+                @if (detail != null)
+                {
+                    <div class="row g-2 mb-3">
+                        <div class="col-12">
+                            <div class="p-3 rounded"
+                                 style="background:#E3F2FD">
+                                <div class="text-muted"
+                                     style="font-size:.78rem">
+                                    اسم الشركة
+                                </div>
+                                <div class="fw-bold"
+                                     style="color:#1565C0">
+                                    @detail.CompanyName
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded"
+                                 style="background:#F8F9FA">
+                                <div class="text-muted"
+                                     style="font-size:.78rem">
+                                    إجمالي الأجهزة
+                                </div>
+                                <div class="fw-bold">
+                                    @myDevices.Count جهاز
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded"
+                                 style="background:#E8F5E9">
+                                <div class="text-muted"
+                                     style="font-size:.78rem">
+                                    الأجهزة المتاحة
+                                </div>
+                                <div class="fw-bold"
+                                     style="color:#2E7D32">
+                                    @myDevices.Count(d =>
+                                        d.IsAvailable) جهاز
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a asp-controller="Prostheses"
+                           asp-action="Create"
+                           class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus-lg me-1"></i>
+                        إضافة أجهزة جديدة
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>

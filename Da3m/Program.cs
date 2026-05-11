@@ -1,5 +1,6 @@
 using Da3m.Data;
 using Da3m.Data.Repositories;
+using Da3m.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,56 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var uow = scope.ServiceProvider
+        .GetRequiredService<IUnitOfWork>();
+
+    await SeedAdminAsync(uow);
+}
+
+async Task SeedAdminAsync(IUnitOfWork uow)
+{
+    // ✅ أنشئ دور Admin إذا ما موجود
+    var roles = await uow.Roles.GetAllAsync();
+    var adminRole = roles.FirstOrDefault(r =>
+        r.RoleName.ToLower() == "admin");
+
+    if (adminRole == null)
+    {
+        adminRole = new Role
+        {
+            RoleName = "Admin",
+            IsDeleted = false
+        };
+        await uow.Roles.AddAsync(adminRole);
+        await uow.SaveChangesAsync();
+    }
+
+    // ✅ أنشئ مستخدم Admin إذا ما موجود
+    var users = await uow.Users.GetAllAsync();
+    var adminExists = users.Any(u =>
+        u.RoleId == adminRole.RoleId);
+
+    if (!adminExists)
+    {
+        var admin = new User
+        {
+            FullName = "مدير النظام",
+            Email = "admin@da3m.com",
+            Password = BCrypt.Net.BCrypt
+                .HashPassword("Admin@123456"),
+            Phone = "0900000000",
+            RoleId = adminRole.RoleId,
+            CreatedAt = DateTime.Now,
+            IsDeleted = false,
+            MustChangePassword = true
+        };
+
+        await uow.Users.AddAsync(admin);
+        await uow.SaveChangesAsync();
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

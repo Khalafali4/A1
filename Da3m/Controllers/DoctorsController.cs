@@ -24,7 +24,7 @@ namespace Da3m.Controllers
 
             ViewData["UsersDict"] = allUsers.ToDictionary(u => u.UserId, u => u.FullName);
 
-            var doctors = allDoctors.Where(d => !d.IsDeletd).ToList();
+            var doctors = allDoctors.Where(d => !d.IsDeleted).ToList();
 
             var centersDict = await _context.Centers.GetAllAsync();
             ViewData["centersDict"] = centersDict.ToList().ToDictionary(c => c.CenterId, c => c.CenterName);
@@ -36,11 +36,11 @@ namespace Da3m.Controllers
         // ── GET: Doctors/Details/5 ──────────
         public async Task<IActionResult> Details(int id)
         {
-            if (!IsAdmin() && !IsDoctor() ) return AccessDenied();
+            if (!IsAdmin() && !IsDoctor() && !IsPatient() ) return AccessDenied();
 
 
             var doctor = await _context.Doctors.GetByIdAsync(id);
-            if (doctor == null || doctor.IsDeletd) return NotFound();
+            if (doctor == null || doctor.IsDeleted) return NotFound();
             var user = await _context.Users.GetAllAsync();
             ViewData["UsersDict"] = user.ToDictionary(u => u.UserId, u => u.FullName);
 
@@ -72,7 +72,7 @@ namespace Da3m.Controllers
             ModelState.Remove("Center");
             if (ModelState.IsValid)
             {
-                doctor.IsDeletd = false;
+                doctor.IsDeleted = false;
                 await _context.Doctors.AddAsync(doctor);
                 await _context.SaveChangesAsync();
                 TempData["Success"] = "تم إضافة الطبيب بنجاح";
@@ -90,7 +90,7 @@ namespace Da3m.Controllers
 
             ViewData["Title"] = "تعديل الطبيب";
             var doctor = await _context.Doctors.GetByIdAsync(id);
-            if (doctor == null || doctor.IsDeletd) return NotFound();
+            if (doctor == null || doctor.IsDeleted) return NotFound();
 
             ViewBag.Centers = await _context.Centers.GetAllAsync();
             return View(doctor);
@@ -128,7 +128,7 @@ namespace Da3m.Controllers
             var doctor = await _context.Doctors.GetByIdAsync(id);
             if (doctor == null) return NotFound();
 
-            doctor.IsDeletd = true;
+            doctor.IsDeleted = true;
             _context.Doctors.Update(doctor);
             await _context.SaveChangesAsync();
 
@@ -144,7 +144,7 @@ namespace Da3m.Controllers
             var doctor = await _context.Doctors.GetByIdAsync(id);
             if (doctor == null) return NotFound();
 
-            doctor.IsDeletd = false;
+            doctor.IsDeleted = false;
             _context.Doctors.Update(doctor);
             await _context.SaveChangesAsync();
 
@@ -161,11 +161,50 @@ namespace Da3m.Controllers
             ViewData["Title"] = "الاطباء الموقوفون";
 
             var allDoctors = await _context.Doctors.GetAllAsync();
-            var deleteDoctors = allDoctors.Where(d => d.IsDeletd).ToList();
+            var deleteDoctors = allDoctors.Where(d => d.IsDeleted).ToList();
 
             var users = await _context.Users.GetAllAsync();
             ViewData["UsersDict"] = users.ToDictionary(u => u.UserId, u => u.FullName);
             return View(deleteDoctors);
+        }
+        public IActionResult Complete(int userId = 0)
+        {
+            ViewData["Title"] = "إكمال بياناتك المهنية";
+            if (userId == 0)
+                userId = int.Parse(HttpContext.Session
+                    .GetString("UserId") ?? "0");
+
+            ViewBag.DoctorUserId = userId;
+            ViewBag.Centers = _context.Centers.GetAllAsync()
+                .Result.ToList();
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Complete(Doctor doctor)
+        {
+            ModelState.Remove("User");
+            ModelState.Remove("Center");
+
+            if (ModelState.IsValid)
+            {
+                doctor.IsDeleted = false;
+                await _context.Doctors.AddAsync(doctor);
+                await _context.SaveChangesAsync();
+
+                HttpContext.Session.SetString(
+                    "ProfileCompleted", "true");
+
+                TempData["Success"] =
+                    "تم إكمال بياناتك بنجاح — مرحباً!";
+                return RedirectToAction("Index", "Home");
+            }
+
+            ViewBag.DoctorUserId = doctor.UserId;
+            ViewBag.Centers = (await _context.Centers
+                .GetAllAsync()).ToList();
+            return View(doctor);
         }
     }
 }

@@ -71,7 +71,7 @@ namespace Da3m.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<bool>("IsDeletd")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("LicenseNumber")
@@ -106,7 +106,7 @@ namespace Da3m.Data.Migrations
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<bool>("IsDeletd")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("Note")
@@ -134,7 +134,7 @@ namespace Da3m.Data.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
-                    b.Property<bool>("IsDeletd")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("PreferredDonationType")
@@ -166,7 +166,7 @@ namespace Da3m.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<bool>("IsDeletd")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("Website")
@@ -190,7 +190,7 @@ namespace Da3m.Data.Migrations
                     b.Property<int>("DeviceId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsDeletd")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("MatchDate")
@@ -280,7 +280,7 @@ namespace Da3m.Data.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<bool>("IsDeletd")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("NationalId")
@@ -320,7 +320,7 @@ namespace Da3m.Data.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
-                    b.Property<bool>("IsDeletd")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<decimal>("LengthCm")
@@ -403,6 +403,9 @@ namespace Da3m.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -439,7 +442,7 @@ namespace Da3m.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<bool>("IsDeletd")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<int>("MatchId")

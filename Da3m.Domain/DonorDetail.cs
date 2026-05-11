@@ -14,7 +14,7 @@ namespace Da3m.Domain
 
         [MaxLength(50)]
         public string? PreferredDonationType { get; set; }
-        public bool IsDeletd { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
 
         public decimal? TotalDonatedAmount { get; set; }
 

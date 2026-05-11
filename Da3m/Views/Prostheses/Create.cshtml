@@ -33,9 +33,7 @@
                 </label>
                 <select asp-for="UserId" class="form-select"
                         asp-items="@(new SelectList(
-                            (IEnumerable<Da3m.Domain.User>)
-                                ViewData["Users"],
-                            "UserId", "FullName"))">
+                            (IEnumerable<Da3m.Domain.User>)ViewData["Users"],"UserId", "FullName"))">
                     <option value="">-- اختر المالك --</option>
                 </select>
                 <span asp-validation-for="UserId"
@@ -49,8 +47,10 @@
             </label>
             <select asp-for="LimbType" class="form-select">
                 <option value="">-- اختر --</option>
-                <option value="طرف علوي">طرف علوي 🦾</option>
-                <option value="طرف سفلي">طرف سفلي 🦿</option>
+                <option value="طرف علوي أيمن">طرف علوي أيمن 🦾</option>
+                <option value="طرف علوي أيسر">طرف علوي أيسر 🦾</option>
+                <option value="طرف سفلي أيمن">طرف سفلي أيمن 🦿</option>
+                <option value="طرف سفلي أيسر">طرف سفلي أيسر 🦿</option>
             </select>
             <span asp-validation-for="LimbType"
                   class="text-danger small"></span>

@@ -18,6 +18,7 @@ namespace Da3m.Domain
         [Required]
         [MaxLength(255)]
         public string Password { get; set; } = null!;
+        public bool MustChangePassword { get; set; } = false;
         [Required]
         [MaxLength(100)]
         [EmailAddress]

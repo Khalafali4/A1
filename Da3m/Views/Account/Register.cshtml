@@ -1,205 +1,564 @@
 ﻿@{
     ViewData["Title"] = "إنشاء حساب";
     Layout = null;
+
+}
 }
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
     <title>دعم — إنشاء حساب</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap"
+          rel="stylesheet" />
     <style>
         * { font-family: 'Cairo', sans-serif; }
         body {
-            background: linear-gradient(135deg, #0D47A1 0%, #1565C0 50%, #00ACC1 100%);
+            background: linear-gradient(
+                135deg, #0D47A1, #1565C0, #00ACC1);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px 0;
         }
-        .auth-card {
+        .reg-card {
             background: white;
             border-radius: 20px;
             padding: 40px;
             width: 100%;
-            max-width: 480px;
+            max-width: 520px;
             box-shadow: 0 20px 60px rgba(0,0,0,.2);
-        }
-        .logo-box {
-            width: 60px; height: 60px;
-            background: linear-gradient(135deg, #1565C0, #00ACC1);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.6rem;
-            color: white;
-            margin: 0 auto 16px;
         }
         .form-control, .form-select {
             border-radius: 10px;
-            padding: 11px 16px;
             border: 2px solid #E0E7EF;
             font-family: 'Cairo', sans-serif;
-            font-size: .92rem;
+            padding: 11px 16px;
         }
         .form-control:focus, .form-select:focus {
             border-color: #1565C0;
             box-shadow: 0 0 0 3px rgba(21,101,192,.1);
         }
-        .btn-auth {
-            background: linear-gradient(135deg, #1565C0, #00ACC1);
+        .btn-next {
+            background: linear-gradient(
+                135deg, #1565C0, #00ACC1);
             border: none;
             border-radius: 10px;
-            padding: 12px;
-            font-size: 1rem;
+            padding: 13px;
             font-weight: 700;
             color: white;
             width: 100%;
+            font-size: 1rem;
         }
-        .btn-auth:hover { opacity: .9; color: white; }
-        .input-icon { position: relative; }
-        .input-icon i {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
+        .btn-back {
+            border-radius: 10px;
+            padding: 13px;
+            font-weight: 700;
+            width: 100%;
+        }
+
+        /* ── Wizard Steps ── */
+        .step { display: none; }
+        .step.active { display: block; }
+
+        /* ── Progress ── */
+        .progress-steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 28px;
+        }
+        .step-dot {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: .85rem;
+            transition: all .3s;
+        }
+        .step-dot.done {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        .step-dot.active {
+            background: #1565C0;
+            color: white;
+        }
+        .step-dot.pending {
+            background: #E0E7EF;
             color: #7a8999;
         }
-        .input-icon input,
-        .input-icon select { padding-right: 42px; }
+        .step-line {
+            flex: 1;
+            height: 3px;
+            background: #E0E7EF;
+            border-radius: 2px;
+            max-width: 60px;
+        }
+        .step-line.done { background: #E8F5E9; }
+
+        /* ── Role Colors ── */
+        .role-section.patient {
+            background: #FCE4EC;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .role-section.doctor {
+            background: #E8F5E9;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .role-section.donor {
+            background: #FFF3E0;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .role-section.manufacturer {
+            background: #F3E5F5;
+            border-radius: 12px;
+            padding: 16px;
+        }
     </style>
 </head>
 <body>
-<div class="auth-card">
-    <div class="logo-box">
-        <i class="bi bi-heart-pulse-fill"></i>
+<div class="reg-card">
+
+    <!-- Logo -->
+    <div class="text-center mb-3">
+        <div style="width:50px;height:50px;
+                    background:linear-gradient(
+                        135deg,#1565C0,#00ACC1);
+                    border-radius:13px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:1.4rem;
+                    color:white;
+                    margin:0 auto 12px">
+            <i class="bi bi-heart-pulse-fill"></i>
+        </div>
+        <h5 class="fw-bold mb-0" style="color:#0D47A1">
+            إنشاء حساب جديد
+        </h5>
     </div>
-    <h4 class="text-center fw-bold mb-1" style="color:#0D47A1">
-        إنشاء حساب جديد
-    </h4>
-    <p class="text-center text-muted mb-4" style="font-size:.85rem">
-        أدخل بياناتك لإنشاء حسابك
-    </p>
 
     @if (ViewBag.Error != null)
     {
-        <div class="alert alert-danger py-2"
-             style="font-size:.88rem;border-radius:10px">
+        <div class="alert alert-danger py-2 mb-3"
+             style="border-radius:10px;font-size:.88rem">
             <i class="bi bi-exclamation-circle me-1"></i>
             @ViewBag.Error
         </div>
     }
 
-    <form asp-action="Register" method="post">
+    <!-- Progress -->
+    <div class="progress-steps" id="progressSteps">
+        <div class="step-dot active" id="dot1">1</div>
+        <div class="step-line" id="line1"></div>
+        <div class="step-dot pending" id="dot2">2</div>
+        <div class="step-line" id="line2"></div>
+        <div class="step-dot pending" id="dot3">✓</div>
+    </div>
+
+    <form asp-action="Register" method="post"
+          id="regForm">
         @Html.AntiForgeryToken()
 
-        <div class="mb-3">
-            <label class="form-label fw-bold" style="color:#374151">
-                الاسم الكامل
-            </label>
-            <div class="input-icon">
-                <i class="bi bi-person"></i>
-                <input type="text" name="fullName"
-                       class="form-control"
-                       placeholder="أدخل اسمك الكامل"
-                       required />
-            </div>
-        </div>
+        <!-- ── الخطوة 1 — البيانات الأساسية ── -->
+        <div class="step active" id="step1">
+            <p class="text-muted text-center mb-4"
+               style="font-size:.85rem">
+                أدخل معلوماتك الأساسية
+            </p>
 
-        <div class="mb-3">
-            <label class="form-label fw-bold" style="color:#374151">
-                البريد الإلكتروني
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    الاسم الكامل
                 </label>
-            <div class="input-icon">
-                <i class="bi bi-envelope"></i>
-                <input type="email" name="email"
+                <input name="fullName" id="fullName"
                        class="form-control"
-                       placeholder="example@mail.com"
-                       required />
+                       placeholder="أدخل اسمك" />
             </div>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label fw-bold" style="color:#374151">
-                رقم الهاتف
-            </label>
-            <div class="input-icon">
-                <i class="bi bi-phone"></i>
-                <input type="tel" name="phone"
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    البريد الإلكتروني
+                </label>
+                <input name="email" id="email"
                        class="form-control"
-                       placeholder="09xxxxxxxx"
-                       required />
+                       type="email"
+                       placeholder="example@mail.com" />
             </div>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label fw-bold" style="color:#374151">
-                الدور
-            </label>
-            <div class="input-icon">
-                <i class="bi bi-shield"></i>
-                <select name="roleId" class="form-select"
-                        style="padding-right:42px" required>
+            <div class="mb-3">
+                <label class="form-label fw-bold">
+                    رقم الهاتف
+                </label>
+                <input name="phone" id="phone"
+                       class="form-control"
+                       placeholder="09xxxxxxxx" />
+            </div>
+            <div class="row">
+                <div class="col mb-3">
+                    <label class="form-label fw-bold">
+                        كلمة المرور
+                    </label>
+                    <input name="password"
+                           id="password"
+                           class="form-control"
+                           type="password"
+                           placeholder="6 أحرف+"
+                           minlength="6" />
+                </div>
+                <div class="col mb-3">
+                    <label class="form-label fw-bold">
+                        تأكيد كلمة المرور
+                    </label>
+                    <input name="confirmPassword"
+                           id="confirmPassword"
+                           class="form-control"
+                           type="password"
+                           placeholder="••••••" />
+                </div>
+            </div>
+                <!-- ✅ data-role بدون مسافات -->
+                <select name="roleId" id="roleId" class="form-select">
                     <option value="">-- اختر الدور --</option>
                     @if (ViewBag.Roles != null)
                     {
                         foreach (Da3m.Domain.Role r in ViewBag.Roles)
                         {
-                            <option value="@r.RoleId">
+                            <option value="@r.RoleId"
+                                    data-role="@r.RoleName.ToLower().Trim()">
                                 @r.RoleName
                             </option>
                         }
                     }
                 </select>
+                <button type="button" class="btn btn-next"
+                        onclick="goToStep2()">
+                    التالي
+                    <i class="bi bi-arrow-left ms-2"></i>
+                </button>
             </div>
-        </div>
 
-        <div class="mb-3">
-            <label class="form-label fw-bold" style="color:#374151">
-                كلمة المرور
-            </label>
-            <div class="input-icon">
-                <i class="bi bi-lock"></i>
-                <input type="password" name="password"
-                       class="form-control"
-                       placeholder="••••••••"
-                       minlength="6"
-                       required />
+            <!-- ── الخطوة 2 — تفاصيل الدور ── -->
+            <div class="step" id="step2">
+                <p class="text-muted text-center mb-4"
+                   style="font-size:.85rem">
+                    أكمل بياناتك حسب دورك
+                </p>
+
+                <!-- تفاصيل المريض -->
+                <div id="role-patient"
+                     class="role-section patient"
+                     style="display:none">
+                    <h6 class="fw-bold mb-3"
+                        style="color:#AD1457">
+                        <i class="bi bi-person-heart me-1"></i>
+                        بيانات المريض
+                    </h6>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            الرقم الوطني
+                        </label>
+                        <input name="NationalId"
+                               class="form-control"
+                               placeholder="أدخل رقمك الوطني" />
+                    </div>
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label class="form-label fw-bold">
+                                تاريخ الميلاد
+                            </label>
+                            <input name="BirthDateStr"
+                                   class="form-control"
+                                   type="date" />
+                        </div>
+                        <div class="col mb-3">
+                            <label class="form-label fw-bold">
+                                الجنس
+                            </label>
+                            <select name="Gender"
+                                    class="form-select">
+                                <option value="">-- اختر --</option>
+                                <option value="ذكر">ذكر</option>
+                                <option value="أنثى">أنثى</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            العنوان
+                        </label>
+                        <input name="Address"
+                               class="form-control"
+                               placeholder="المدينة، المنطقة" />
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-bold">
+                            نوع الإعاقة
+                        </label>
+                        <input name="DisabilityType"
+                               class="form-control"
+                               placeholder="مثال: بتر طرف علوي أيمن" />
+                    </div>
+                </div>
+
+                <!-- تفاصيل الطبيب -->
+                <div id="role-doctor"
+                     class="role-section doctor"
+                     style="display:none">
+                    <h6 class="fw-bold mb-3"
+                        style="color:#2E7D32">
+                        <i class="bi bi-person-badge me-1"></i>
+                        بيانات الطبيب
+                    </h6>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            التخصص
+                        </label>
+                        <input name="Specialty"
+                               class="form-control"
+                               placeholder="مثال: طب تأهيلي" />
+                    </div>
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label class="form-label fw-bold">
+                                رقم الترخيص
+                            </label>
+                            <input name="LicenseNumber"
+                                   class="form-control"
+                                   placeholder="رقم الترخيص" />
+                        </div>
+                        <div class="col mb-3">
+                            <label class="form-label fw-bold">
+                                المستشفى
+                            </label>
+                            <input name="HospitalName"
+                                   class="form-control"
+                                   placeholder="اسم المستشفى" />
+                        </div>
+                        @* <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                المركز المرتبط
+                            </label>
+                            <select asp-for="CenterId"
+                                    class="form-select">
+                                <option value="">
+                                    -- اختر المركز (اختياري) --
+                                </option>
+                                @foreach (var c in centers)
+                                {
+                                    <option value="@c.CenterId">
+                                        @c.CenterName
+                                    </option>
+                                }
+                            </select>
+                        </div> *@
+                    </div>
+                </div>
+
+                <!-- تفاصيل المتبرع -->
+                <div id="role-donor"
+                     class="role-section donor"
+                     style="display:none">
+                    <h6 class="fw-bold mb-3"
+                        style="color:#E65100">
+                        <i class="bi bi-gift me-1"></i>
+                        بيانات المتبرع
+                    </h6>
+                    <div class="mb-0">
+                        <label class="form-label fw-bold">
+                            نوع التبرع المفضّل
+                        </label>
+                        <select name="PreferredDonationType"
+                                class="form-select">
+                            <option value="">-- اختر --</option>
+                            <option value="مالي">
+                                تبرع مالي 💰
+                            </option>
+                            <option value="جهاز تعويضي">
+                                جهاز تعويضي 🦾
+                            </option>
+                            <option value="مالي وعيني">
+                                مالي وعيني
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- تفاصيل المصنّع -->
+                <div id="role-manufacturer"
+                     class="role-section manufacturer"
+                     style="display:none">
+                    <h6 class="fw-bold mb-3"
+                        style="color:#6A1B9A">
+                        <i class="bi bi-building me-1"></i>
+                        بيانات الشركة
+                    </h6>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            اسم الشركة
+                        </label>
+                        <input name="CompanyName"
+                               class="form-control"
+                               placeholder="اسم الشركة" />
+                    </div>
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label class="form-label fw-bold">
+                                السجل التجاري
+                            </label>
+                            <input name="CommercialRegister"
+                                   class="form-control"
+                                   placeholder="رقم السجل" />
+                        </div>
+                        <div class="col mb-3">
+                            <label class="form-label fw-bold">
+                                الموقع الإلكتروني
+                            </label>
+                            <input name="Website"
+                                   class="form-control"
+                                   placeholder="https://..." />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="button"
+                            class="btn btn-outline-secondary btn-back"
+                            onclick="goToStep1()">
+                        <i class="bi bi-arrow-right me-1"></i>
+                        رجوع
+                    </button>
+                    <button type="submit"
+                            class="btn btn-next">
+                        <i class="bi bi-check-lg me-2"></i>
+                        إنشاء الحساب
+                    </button>
+                </div>
             </div>
+
+        </form><!-- رابط تسجيل الدخول -->
+        <div class="text-center mt-3"
+             style="font-size:.85rem;color:#7a8999">
+            لديك حساب؟
+            <a asp-controller="Account"
+               asp-action="Login"
+               style="color:#1565C0;font-weight:700">
+                سجّل دخولك
+            </a>
         </div>
+    </div>
 
-        <div class="mb-4">
-            <label class="form-label fw-bold" style="color:#374151">
-                تأكيد كلمة المرور
-            </label>
-            <div class="input-icon">
-                <i class="bi bi-lock-fill"></i>
-                <input type="password" name="confirmPassword"
-                       class="form-control"
-                       placeholder="••••••••"
-                       minlength="6"
-                       required />
-            </div>
-        </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ── قراءة أسماء الأدوار ──────────────
+        var roleMap = {};
+        document.querySelectorAll('#roleId option')
+        .forEach(opt => {
+        if (opt.value)
+        roleMap[opt.value] =
+        opt.dataset.role || '';
+        });
 
-        <button type="submit" class="btn btn-auth mb-3">
-            <i class="bi bi-person-check me-2"></i>
-            إنشاء الحساب
-        </button>
+        // ── الانتقال للخطوة 2 ────────────────
+        function goToStep2() {
+        // ✅ تحقق من الخطوة 1
+        var name     = document.getElementById(
+        'fullName').value.trim();
+        var email    = document.getElementById(
+        'email').value.trim();
+        var pass     = document.getElementById(
+        'password').value;
+        var confirm  = document.getElementById(
+        'confirmPassword').value;
+        var roleId   = document.getElementById(
+        'roleId').value;
 
-        <a asp-action="Login"
-           class="btn btn-outline-secondary w-100"
-           style="border-radius:10px;font-weight:700">
-            <i class="bi bi-arrow-right me-2"></i>
-            لدي حساب — تسجيل الدخول
-        </a>
-    </form>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        if (!name) {
+        alert('يرجى إدخال الاسم'); return;
+        }
+        if (!email) {
+        alert('يرجى إدخال البريد'); return;
+        }
+        if (!pass || pass.length < 6) {
+        alert('كلمة المرور 6 أحرف على الأقل');
+        return;
+        }
+        if (pass !== confirm) {
+        alert('كلمتا المرور غير متطابقتين');
+        return;
+        }
+        if (!roleId) {
+        alert('يرجى اختيار الدور'); return;
+        }
+
+        // ✅ إظهار تفاصيل الدور
+        document.querySelectorAll('[id^="role-"]')
+        .forEach(d => d.style.display = 'none');
+
+        var roleName = roleMap[roleId] || '';
+
+        if (roleName.includes('patient') ||
+        roleName.includes('مريض'))
+        document.getElementById('role-patient')
+        .style.display = 'block';
+        else if (roleName.includes('doctor') ||
+        roleName.includes('طبيب'))
+        document.getElementById('role-doctor')
+        .style.display = 'block';
+        else if (roleName.includes('donor') ||
+        roleName.includes('متبرع'))
+        document.getElementById('role-donor')
+        .style.display = 'block';
+        else if (roleName.includes('manufacturer') ||
+        roleName.includes('مصنع'))
+        document.getElementById('role-manufacturer')
+        .style.display = 'block';
+
+        // ✅ انتقل للخطوة 2
+        document.getElementById('step1')
+        .classList.remove('active');
+        document.getElementById('step2')
+        .classList.add('active');
+
+        // ✅ حدّث الـ Progress
+        document.getElementById('dot1')
+        .className = 'step-dot done';
+        document.getElementById('dot1')
+        .textContent = '✓';
+        document.getElementById('line1')
+        .className = 'step-line done';
+        document.getElementById('dot2')
+        .className = 'step-dot active';
+        }
+
+        // ── الرجوع للخطوة 1 ─────────────────
+        function goToStep1() {
+        document.getElementById('step2')
+        .classList.remove('active');
+        document.getElementById('step1')
+        .classList.add('active');
+
+        document.getElementById('dot1')
+        .className = 'step-dot active';
+        document.getElementById('dot1')
+        .textContent = '1';
+        document.getElementById('line1')
+        .className = 'step-line';
+        document.getElementById('dot2')
+        .className = 'step-dot pending';
+        }
+    </script>
 </body>
 </html>

@@ -1,48 +1,173 @@
 ﻿@model Da3m.Domain.VisitReport
-
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "تفاصيل تقرير الزيارة";
+    var match = ViewBag.Match as Da3m.Domain.Match;
 }
 
-<h1>Details</h1>
-
-<div>
-    <h4>VisitReport</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DoctorNotes)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DoctorNotes)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PatientFeedback)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PatientFeedback)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ReportDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ReportDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Center)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Center.CenterName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Match)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Match.Status)
-        </dd>
-    </dl>
+<div class="page-header d-flex justify-content-between
+    align-items-center">
+    <div>
+        <h2>
+            <i class="bi bi-file-medical-fill me-2"></i>
+            تقرير الزيارة #@Model.ReportId
+        </h2>
+        <p>تفاصيل الزيارة الطبية</p>
+    </div>
+    <a asp-action="Index"
+           class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-right me-1"></i> رجوع
+    </a>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.ReportId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<div class="row g-3">
+
+    <!-- معلومات التقرير -->
+    <div class="col-md-5">
+        <div class="da3m-table p-4">
+            <h6 class="fw-bold mb-3"
+                style="color:#1565C0">
+                <i class="bi bi-info-circle me-1"></i>
+                معلومات الزيارة
+            </h6>
+
+            <div class="mb-3 p-3 rounded"
+                 style="background:#E3F2FD">
+                <div class="text-muted"
+                     style="font-size:.78rem;color:#1565C0">
+                    <i class="bi bi-person-heart me-1"></i>
+                    المريض
+                </div>
+                <div class="fw-bold"
+                     style="color:#1565C0">
+                    @(ViewBag.PatientName ?? "—")
+                </div>
+            </div>
+
+            <div class="mb-3 p-3 rounded"
+                 style="background:#F3E5F5">
+                <div class="text-muted"
+                     style="font-size:.78rem;color:#6A1B9A">
+                    <i class="bi bi-robot me-1"></i>
+                    الجهاز التعويضي
+                </div>
+                <div class="fw-bold"
+                     style="color:#6A1B9A">
+                    @(ViewBag.DeviceName ?? "—")
+                </div>
+            </div>
+
+            @if (match != null)
+            {
+                var pct = match.MatchPercentage;
+                var color = pct >= 99 ? "#1B5E20"
+                          : pct >= 85 ? "#2E7D32"
+                          : pct >= 70 ? "#E65100"
+                          : "#C62828";
+                var bg = pct >= 99 ? "#E8F5E9"
+                          : pct >= 85 ? "#F9FBE7"
+                          : pct >= 70 ? "#FFF3E0"
+                          : "#FFEBEE";
+
+                <div class="mb-3 p-3 rounded"
+                     style="background:@bg">
+                    <div class="text-muted"
+                         style="font-size:.78rem;
+                        color:@color">
+                        نسبة المطابقة
+                    </div>
+                    <div class="fw-bold"
+                         style="color:@color;
+                        font-size:1.2rem">
+                        @pct% — @match.Status
+                    </div>
+                    <div style="height:6px;
+                        background:rgba(0,0,0,.1);
+                        border-radius:3px;
+                        margin-top:6px">
+                        <div style="width:@pct%;
+                            height:100%;
+                            background:@color;
+                            border-radius:3px">
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="mb-3 p-3 rounded"
+                 style="background:#E8F5E9">
+                <div class="text-muted"
+                     style="font-size:.78rem;color:#2E7D32">
+                    <i class="bi bi-hospital me-1"></i>
+                    المركز
+                </div>
+                <div class="fw-bold"
+                     style="color:#2E7D32">
+                    @(ViewBag.CenterName ?? "—")
+                </div>
+            </div>
+
+            <div class="p-3 rounded"
+                 style="background:#F8F9FA">
+                <div class="text-muted"
+                     style="font-size:.78rem">
+                    <i class="bi bi-calendar me-1"></i>
+                    تاريخ التقرير
+                </div>
+                <div class="fw-bold">
+                    @Model.ReportDate.ToString("yyyy/MM/dd")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ملاحظات -->
+    <div class="col-md-7">
+        <div class="da3m-table p-4 mb-3">
+            <h6 class="fw-bold mb-3"
+                style="color:#1565C0">
+                <i class="bi bi-clipboard-pulse me-1"></i>
+                ملاحظات الطبيب
+            </h6>
+            <div class="p-3 rounded"
+                 style="background:#F8F9FA;
+                min-height:120px;
+                line-height:1.8;
+                font-size:.9rem">
+                @if (!string.IsNullOrEmpty(Model.DoctorNotes))
+                {
+                    @Model.DoctorNotes
+                }
+                else
+                {
+                    <span class="text-muted">
+                        لا توجد ملاحظات
+                    </span>
+                }
+            </div>
+        </div>
+
+        <div class="da3m-table p-4">
+            <h6 class="fw-bold mb-3"
+                style="color:#AD1457">
+                <i class="bi bi-chat-dots me-1"></i>
+                ملاحظات المريض
+            </h6>
+            <div class="p-3 rounded"
+                 style="background:#F8F9FA;
+                min-height:120px;
+                line-height:1.8;
+                font-size:.9rem">
+                @if (!string.IsNullOrEmpty(Model.PatientFeedback))
+                {
+                    @Model.PatientFeedback
+                }
+                else
+                {
+                    <span class="text-muted">
+                        لا توجد ملاحظات
+                    </span>
+                }
+            </div>
+        </div>
+    </div>
 </div>

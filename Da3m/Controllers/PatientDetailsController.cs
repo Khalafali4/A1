@@ -29,16 +29,52 @@ namespace Da3m.Controllers
             return View(patientDetails);
         }
 
-        // ── GET: Patients/Details/5 ─────────
+        // ── GET: /Details/5 ─────────
         public async Task<IActionResult> Details(int id)
         {
-            if (!IsAdmin() && !IsDoctor()) return AccessDenied();
-            ViewData["Title"] = "تفاصيل المريض";
-            var patient = await _context.PatientDetails.GetByIdAsync(id);
-            if (patient == null) return NotFound();
+            if (!IsAdmin() && !IsDoctor() && !IsPatient())
+                return AccessDenied();
+
+            // ✅ المريض يرى بياناته فقط
+            if (IsPatient())
+            {
+                var sessionId = int.Parse(HttpContext.Session
+                    .GetString("UserId") ?? "0");
+                if (id != sessionId) return AccessDenied();
+            }
+
+            var patient = await _context.PatientDetails
+                .GetByIdAsync(id);
+            if (patient == null || patient.IsDeleted)
+                return NotFound();
+
+            // ✅ جيب اسم المريض
+            var user = await _context.Users.GetByIdAsync(id);
+            ViewBag.UserName = user?.FullName ?? "—";
+            ViewBag.UserEmail = user?.Email ?? "—";
+            ViewBag.UserPhone = user?.Phone ?? "—";
+
+            // ✅ قياساته
+            var measurements = await _context.Measurements
+                .FindAsync(m => m.UserId == id);
+            ViewBag.Measurements = measurements
+                .OrderByDescending(m => m.MeasuredAt)
+                .ToList();
+
+            // ✅ مطابقاته
+            var matches = await _context.Matches
+                .FindAsync(m => m.UserId == id);
+            ViewBag.Matches = matches
+                .OrderByDescending(m => m.MatchDate)
+                .ToList();
+
+            // ✅ أسماء الأجهزة
+            var devices = await _context.Prostheses.GetAllAsync();
+            ViewBag.DevicesDict = devices
+                .ToDictionary(d => d.DeviceId, d => d.LimbType);
+
             return View(patient);
         }
-
         // ── GET: Patients/Create ────────────
         public IActionResult Create(int userId)
         {
@@ -56,7 +92,7 @@ namespace Da3m.Controllers
         {
             if (!IsAdmin()) return AccessDenied();
             ModelState.Remove("User");
-            if (ModelState.IsValid)
+            if (ModelState.IsValid )
             {
 
                 foreach (var error in ModelState.Values.SelectMany(x => x.Errors))
@@ -115,6 +151,44 @@ namespace Da3m.Controllers
             await _context.SaveChangesAsync();
             TempData["Success"] = "تم حذف بيانات المريض بنجاح";
             return RedirectToAction(nameof(Index));
+        }
+        // ── GET: Complete ───────────────────
+        public IActionResult Complete(int userId = 0)
+        {
+            ViewData["Title"] = "إكمال بياناتك الطبية";
+            if (userId == 0)
+                userId = int.Parse(HttpContext.Session
+                    .GetString("UserId") ?? "0");
+
+            ViewBag.PatientUserId = userId;
+            return View();
+        }
+
+        // ── POST: Complete ──────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Complete(
+            PatientDetail patient)
+        {
+            ModelState.Remove("User");
+
+            if (ModelState.IsValid)
+            {
+                patient.IsDeleted = false;
+                await _context.PatientDetails.AddAsync(patient);
+                await _context.SaveChangesAsync();
+
+                // ✅ علّم البيانات مكتملة
+                HttpContext.Session.SetString(
+                    "ProfileCompleted", "true");
+
+                TempData["Success"] =
+                    "تم إكمال بياناتك بنجاح — مرحباً!";
+                return RedirectToAction("Index", "Home");
+            }
+
+            ViewBag.PatientUserId = patient.UserId;
+            return View(patient);
         }
 
     }

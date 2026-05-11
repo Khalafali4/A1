@@ -1,30 +1,46 @@
 ﻿@model IEnumerable<Da3m.Domain.Prostheses>
 @{
     ViewData["Title"] = "الأجهزة التعويضية";
-    var dict = ViewData["UsersDict"] as Dictionary<int, string>
+    var dict = ViewData["UsersDict"]
+               as Dictionary<int, string>
                ?? new Dictionary<int, string>();
-    bool isAdmin = ViewBag.CurrentRole?.ToString().ToLower() == "admin"
-               || ViewBag.CurrentRole?.ToString() == "مدير";
-    bool isManufacturer = ViewBag.CurrentRole?.ToString().ToLower() == "manufacturer"
-                  || ViewBag.CurrentRole?.ToString() == "مصنع";
-    bool isDonor = ViewBag.CurrentRole?.ToString().ToLower() == "donor"
-              || ViewBag.CurrentRole?.ToString() == "متبرع";
+    bool isAdmin = ViewBag.CurrentRole?.ToString().ToLower() == "admin"|| ViewBag.CurrentRole?.ToString() == "مدير";
+    bool isManufacturer = ViewBag.CurrentRole?.ToString().ToLower() == "manufacturer" || ViewBag.CurrentRole?.ToString() == "مصنع";
+    bool isDonor = ViewBag.CurrentRole?.ToString().ToLower() == "donor" || ViewBag.CurrentRole?.ToString() == "متبرع";
+
 }
 
-<div class="page-header d-flex justify-content-between align-items-center">
+<div class="page-header d-flex justify-content-between
+    align-items-center">
     <div>
         <h2><i class="bi bi-robot me-2"></i>الأجهزة التعويضية</h2>
-        <p>إدارة جميع الأجهزة التعويضية في المنصة</p>
+        <p>إدارة جميع الأجهزة في المنصة</p>
     </div>
-    <a asp-action="Create" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> إضافة جهاز
-    </a>
+    <div class="d-flex gap-2">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> إضافة جهاز
+        </a>
+        @* @if (isAdmin)
+        {
+            <a asp-action="Available"
+                   class="btn btn-outline-success btn-sm">
+                <i class="bi bi-check-circle me-1"></i>
+                المتاحة
+            </a>
+            <a asp-action="Unavailable"
+                   class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-x-circle me-1"></i>
+                غير المتاحة
+            </a>
+        } *@
+    </div>
 </div>
 
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show">
-        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+        <i class="bi bi-check-circle me-2"></i>
+        @TempData["Success"]
         <button type="button" class="btn-close"
                 data-bs-dismiss="alert"></button>
     </div>
@@ -41,9 +57,9 @@ else
 {
     <!-- إحصائيات -->
     <div class="row g-3 mb-4">
-        <div class="col-md-6">
-            <div class="stat-card">
-                <div class="stat-icon mb-2"
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-icon mx-auto mb-2"
                      style="background:#F3E5F5">
                     <i class="bi bi-robot"
                        style="color:#6A1B9A"></i>
@@ -52,9 +68,9 @@ else
                 <div class="stat-label">إجمالي الأجهزة</div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="stat-card">
-                <div class="stat-icon mb-2"
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-icon mx-auto mb-2"
                      style="background:#E8F5E9">
                     <i class="bi bi-check-circle"
                        style="color:#2E7D32"></i>
@@ -62,126 +78,236 @@ else
                 <div class="stat-num">
                     @Model.Count(d => d.IsAvailable)
                 </div>
-                <div class="stat-label">الأجهزة المتاحة</div>
+                <div class="stat-label">متاحة</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-icon mx-auto mb-2"
+                     style="background:#E3F2FD">
+                    <i class="bi bi-arrow-up-circle"
+                       style="color:#1565C0"></i>
+                </div>
+                <div class="stat-num">
+                    @Model.Count(d =>
+                        d.LimbType != null &&
+                        d.LimbType.Contains("علوي"))
+                </div>
+                <div class="stat-label">أطراف علوية</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-icon mx-auto mb-2"
+                     style="background:#FFF3E0">
+                    <i class="bi bi-arrow-down-circle"
+                       style="color:#E65100"></i>
+                </div>
+                <div class="stat-num">
+                    @Model.Count(d =>
+                        d.LimbType != null &&
+                        d.LimbType.Contains("سفلي"))
+                </div>
+                <div class="stat-label">أطراف سفلية</div>
             </div>
         </div>
     </div>
+    <!-- فلتر -->
+    <div class="da3m-table p-3 mb-3">
+        <div class="d-flex gap-2 align-items-center
+            flex-wrap">
+            <span class="fw-bold"
+                  style="font-size:.88rem;color:#374151">
+                <i class="bi bi-funnel me-1"></i>فلتر:
+            </span>
+            <button class="btn btn-sm btn-outline-secondary active"
+                    onclick="filterCards('all', this)">
+                الكل
+            </button>
+            <button class="btn btn-sm btn-outline-success"
+                    onclick="filterCards('available', this)">
+                <i class="bi bi-check-circle me-1"></i>متاحة
+            </button>
+            <button class="btn btn-sm btn-outline-danger"
+                    onclick="filterCards('unavailable', this)">
+                <i class="bi bi-x-circle me-1"></i>غير متاحة
+            </button>
+            <button class="btn btn-sm btn-outline-primary"
+                    onclick="filterCards('upper', this)">
+                طرف علوي
+            </button>
+            <button class="btn btn-sm btn-outline-warning"
+                    onclick="filterCards('lower', this)">
+                طرف سفلي
+            </button>
+        </div>
+    </div>
 
-    <!-- الجدول -->
-    <div class="da3m-table">
-        <table class="table table-hover mb-0"
-               style="table-layout:fixed;width:100%">
-            <thead>
-                <tr>
-                    <th style="width:5%">#</th>
-                    <th style="width:14%">نوع الطرف</th>
-                    <th style="width:14%">الطول / العرض</th>
-                    <th style="width:10%">المادة</th>
-                    <th style="width:12%">الحالة</th>
-                    <th style="width:10%">الاتجاه</th>
-                    <th style="width:15%">المالك</th>
-                    <th style="width:10%">متاح</th>
-                    <th style="width:10%">الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (Da3m.Domain.Prostheses device in Model)
-                {
-                    var uName = dict.ContainsKey(device.UserId)
-                        ? dict[device.UserId] : "—";
+    <!-- Cards -->
+    <div class="row g-3" id="devicesGrid">
+        @foreach (Da3m.Domain.Prostheses device in Model)
+        {
+            var uName = dict.ContainsKey(device.UserId)
+                ? dict[device.UserId] : "—";
 
-                    <tr>
-                        <td>@device.DeviceId</td>
+            var isUpper = device.LimbType?.Contains("علوي")
+                          ?? false;
+            var dataType = isUpper ? "upper" : "lower";
+            var dataAvail = device.IsAvailable
+                ? "available" : "unavailable";
 
-                        <!-- نوع الطرف -->
-                        <td>
-                            <span class="badge-status d-block
-                                         text-center"
-                                  style="background:#F3E5F5;
-                                         color:#6A1B9A;
-                                         white-space:nowrap">
-                                <i class="bi bi-robot me-1"></i>
-                                @device.LimbType
-                            </span>
-                        </td>
+            var condBg = device.Condition == "جديد"
+                ? "#E8F5E9" : device.Condition == "مستعمل جيد"
+                ? "#FFF3E0" : "#FCE4EC";
+            var condColor = device.Condition == "جديد"
+                ? "#2E7D32" : device.Condition == "مستعمل جيد"
+                ? "#E65100" : "#AD1457";
 
-                        <!-- الطول / العرض -->
-                        <td class="text-center">
-                            <div style="font-size:.82rem;
-                                font-weight:700;
-                                color:#1565C0">
-                                @device.LengthCm cm
+            <div class="col-xl-3 col-md-4 col-sm-6
+                device-card"
+                 data-type="@dataType"
+                 data-avail="@dataAvail">
+                <div class="card border-0 shadow-sm h-100"
+                     style="border-radius:14px;
+                    transition:transform .2s,
+                    box-shadow .2s;
+                    overflow:hidden"
+                     onmouseover="this.style.transform=
+                    'translateY(-4px)';
+                    this.style.boxShadow=
+                    '0 8px 24px rgba(0,0,0,.12)'"
+                     onmouseout="this.style.transform='';
+                    this.style.boxShadow=''">
+
+                    <!-- Header -->
+                    <div class="card-header border-0 p-3"
+                         style="background:@(isUpper ? "linear-gradient(135deg,#E3F2FD,#BBDEFB)" : "linear-gradient(135deg,#FFF3E0,#FFE0B2)")">
+                        <div class="d-flex justify-content-between
+                            align-items-center">
+                            <div style="font-size:2rem">
+                                @(isUpper ? "🦾" : "🦿")
                             </div>
-                            <div style="font-size:.75rem;
-                                color:#7a8999">
-                                × @device.WidthCm cm
+                            <div class="text-end">
+                                <div class="fw-bold"
+                                     style="font-size:.9rem;
+                                    color:@(isUpper ? "#1565C0" : "#E65100")">
+                                    @device.LimbType
+                                </div>
+                                <div style="font-size:.75rem;
+                                    color:#7a8999">
+                                    #@device.DeviceId
+                                </div>
                             </div>
-                        </td>
+                        </div>
+                    </div>
 
-                        <!-- المادة -->
-                        <td style="font-size:.85rem">
-                            @(device.Material ?? "—")
-                        </td>
+                    <!-- Body -->
+                    <div class="card-body p-3">
 
-                        <!-- الحالة -->
-                        <td>
-                            @{
-                                var condBg = device.Condition == "جديد"
-                                    ? "#E8F5E9" : "#FFF3E0";
-                                var condColor = device.Condition == "جديد"
-                                    ? "#2E7D32" : "#E65100";
-                            }
+                        <!-- المقاسات -->
+                        <div class="d-flex gap-2 mb-3">
+                            <div class="flex-1 text-center p-2 rounded"
+                                 style="background:#F8F9FA;flex:1">
+                                <div style="font-size:.7rem;
+                                    color:#7a8999">
+                                    الطول
+                                </div>
+                                <div class="fw-bold"
+                                     style="color:#1565C0;
+                                    font-size:.95rem">
+                                    @device.LengthCm
+                                    <small>cm</small>
+                                </div>
+                            </div>
+                            <div class="flex-1 text-center p-2 rounded"
+                                 style="background:#F8F9FA;flex:1">
+                                <div style="font-size:.7rem;
+                                    color:#7a8999">
+                                    العرض
+                                </div>
+                                <div class="fw-bold"
+                                     style="color:#1565C0;
+                                    font-size:.95rem">
+                                    @device.WidthCm
+                                    <small>cm</small>
+                                </div>
+                            </div>
+                            <div class="flex-1 text-center p-2 rounded"
+                                 style="background:#F8F9FA;flex:1">
+                                <div style="font-size:.7rem;
+                                    color:#7a8999">
+                                    الاتجاه
+                                </div>
+                                <div class="fw-bold"
+                                     style="font-size:.85rem">
+                                    @(device.Direction ?? "—")
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- المادة والحالة -->
+                        <div class="d-flex gap-2 mb-3">
                             <span class="badge-status"
                                   style="background:@condBg;
                                 color:@condColor;
-                                white-space:nowrap">
+                                font-size:.75rem">
                                 @(device.Condition ?? "—")
                             </span>
-                        </td>
-
-                        <!-- الاتجاه -->
-                        <td class="text-center">
-                            @if (device.Direction != null)
+                            @if (device.Material != null)
                             {
                                 <span class="badge-status"
                                       style="background:#E3F2FD;
-                                    color:#1565C0">
-                                    @device.Direction
+                                    color:#1565C0;
+                                    font-size:.75rem">
+                                    @device.Material
                                 </span>
                             }
-                            else
-                            {
-                                <span class="text-muted">—</span>
-                            }
-                        </td>
+                        </div>
 
                         <!-- المالك -->
-                        <td>
-                            <div class="d-flex align-items-center
-                                gap-1">
-                                <div class="user-avatar"
-                                     style="width:28px;height:28px;
-                                    font-size:.75rem;
-                                    flex-shrink:0">
-                                    @uName.Substring(0, 1)
-                                </div>
-                                <span style="font-size:.82rem;
-                                    overflow:hidden;
-                                    text-overflow:ellipsis;
-                                    white-space:nowrap">
-                                    @uName
-                                </span>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="user-avatar"
+                                 style="width:28px;height:28px;
+                                font-size:.75rem;
+                                flex-shrink:0">
+                                @uName.Substring(0, 1)
                             </div>
-                        </td>
+                            <span style="font-size:.82rem;
+                                overflow:hidden;
+                                text-overflow:ellipsis;
+                                white-space:nowrap;
+                                color:#374151">
+                                @uName
+                            </span>
+                        </div>
 
-                        <!-- متاح -->
-                        <td class="text-center">
+                        <!-- الملاحظة -->
+                        @if (device.Note != null)
+                        {
+                            <div style="font-size:.78rem;
+                                color:#7a8999;
+                                border-top:1px solid #F0F4F8;
+                                padding-top:8px;
+                                margin-bottom:8px">
+                                <i class="bi bi-info-circle me-1"></i>
+                                @device.Note
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="card-footer border-0 p-3 pt-0">
+                        <div class="d-flex justify-content-between
+                            align-items-center">
+
+                            <!-- حالة التوفر -->
                             @if (device.IsAvailable)
                             {
-                                <span class="badge-status d-block
-                                    text-center"
-                                      style="background:#E8F5E9;color:#2E7D32; white-space:nowrap">
-                                    <i class="bi bi-check-circle"></i>
+                                <span class="badge-status"
+                                      style="background:#E8F5E9;
+                                    color:#2E7D32;
+                                    font-size:.78rem">
+                                    <i class="bi bi-check-circle me-1"></i>
                                     متاح
                                 </span>
                             }
@@ -189,16 +315,14 @@ else
                             {
                                 <span class="badge-status"
                                       style="background:#FFEBEE;
-                                    color:#C62828 ; white-space:nowrap">
-                                    <i class="bi bi-x-circle"></i>
+                                    color:#C62828;
+                                    font-size:.78rem">
+                                    <i class="bi bi-x-circle me-1"></i>
                                     غير متاح
                                 </span>
                             }
-                        </td>
-                        <!-- الإجراءات -->
-                        @if (isAdmin || isManufacturer || isDonor)
-                        {
-                        <td>
+
+                            <!-- أزرار -->
                             <div class="d-flex gap-1">
                                 <a asp-action="Edit"
                                        asp-route-id="@device.DeviceId"
@@ -206,13 +330,28 @@ else
                                        title="تعديل">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-
+                                @if (isAdmin ||isDonor ||isManufacturer )
+                                {
+                                    <form asp-action="ToggleAvailable"
+                                          asp-route-id="@device.DeviceId"
+                                          method="post"
+                                          style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="btn btn-sm
+                                            @(device.IsAvailable ? "btn-outline-secondary" : "btn-outline-success")"
+                                                title="@(device.IsAvailable? "إيقاف" : "تفعيل")">
+                                            <i class="bi @(device.IsAvailable? "bi-pause-circle"
+                                                                                                                                                                                                                                              : "bi-play-circle")">
+                                            </i>
+                                        </button>
+                                    </form>
                                     <form asp-action="Delete"
                                           asp-route-id="@device.DeviceId"
                                           method="post"
                                           style="display:inline"
                                           onsubmit="return confirm(
-                                        'هل أنت متأكد من الحذف؟')">
+                                        'هل أنت متأكد؟')">
                                         @Html.AntiForgeryToken()
                                         <button type="submit"
                                                 class="btn btn-sm
@@ -221,19 +360,47 @@ else
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
-                               
+                                }
+                                else
+                                {
+                                  <div>
+                                    <td>
+                                        <span class="text-muted"> صلاحيات محددة(●'◡'●)</span>
+                                    </td>
+                                  </div>
+                                }
                             </div>
-                        </td>
-                        }
-                        else
-                        {
-                            <td>
-                                <span class="text-muted">صلاحيات محددة(●'◡'●)</span>
-                            </td>
-                        }
-                    </tr>
-                }
-            </tbody>
-        </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 }
+
+@section Scripts {
+    <script>
+        function filterCards(type, btn) {
+            // تحديث أزرار الفلتر
+            document.querySelectorAll('.da3m-table .btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // فلترة الـ Cards
+            document.querySelectorAll('.device-card')
+                .forEach(card => {
+                    var show = true;
+                    if (type === 'available')
+                        show = card.dataset.avail === 'available';
+                    else if (type === 'unavailable')
+                        show = card.dataset.avail === 'unavailable';
+                    else if (type === 'upper')
+                        show = card.dataset.type === 'upper';
+                    else if (type === 'lower')
+                        show = card.dataset.type === 'lower';
+
+                    card.style.display = show ? '' : 'none';
+                });
+        }
+    </script>
+}
+

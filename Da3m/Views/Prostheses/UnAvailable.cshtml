@@ -1,0 +1,176 @@
+﻿@* @model IEnumerable<Da3m.Domain.Prostheses>
+@{
+    ViewData["Title"] = "الأجهزة غير المتاحة";
+    var dict = ViewData["UsersDict"]
+               as Dictionary<int, string>
+               ?? new Dictionary<int, string>();
+}
+
+<div class="page-header d-flex justify-content-between
+    align-items-center">
+    <div>
+        <h2>
+            <i class="bi bi-x-circle me-2"
+               style="color:#C62828"></i>
+            الأجهزة غير المتاحة
+        </h2>
+        <p>أجهزة موقوفة — يمكن إعادة تفعيلها</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index"
+               class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-right me-1"></i> الكل
+        </a>
+        <a asp-action="Available"
+               class="btn btn-outline-success">
+            <i class="bi bi-check-circle me-1"></i>
+            المتاحة
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>
+        @TempData["Success"]
+        <button type="button" class="btn-close"
+                data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- إحصائية -->
+<div class="da3m-table p-3 mb-3"
+     style="background:linear-gradient(
+    135deg,#FFEBEE,#FCE4EC)">
+    <div class="d-flex align-items-center gap-3">
+        <div class="stat-icon"
+             style="background:#C62828">
+            <i class="bi bi-robot"
+               style="color:white"></i>
+        </div>
+        <div>
+            <div class="stat-num" style="color:#C62828">
+                @Model.Count()
+            </div>
+            <div class="stat-label">
+                جهاز غير متاح حالياً
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        جميع الأجهزة متاحة ✅
+    </div>
+}
+else
+{
+    <div class="da3m-table">
+        <table class="table table-hover mb-0"
+               style="table-layout:fixed">
+            <thead>
+                <tr>
+                    <th style="width:5%">#</th>
+                    <th style="width:15%">نوع الطرف</th>
+                    <th style="width:15%">الطول/العرض</th>
+                    <th style="width:10%">المادة</th>
+                    <th style="width:12%">الحالة</th>
+                    <th style="width:10%">الاتجاه</th>
+                    <th style="width:18%">المالك</th>
+                    <th style="width:15%">الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Da3m.Domain.Prostheses d in Model)
+                {
+                    var uName = dict.ContainsKey(d.UserId)
+                        ? dict[d.UserId] : "—";
+
+                    <tr style="opacity:.75">
+                        <td>@d.DeviceId</td>
+                        <td>
+                            <span class="badge-status"
+                                  style="background:#F3E5F5;
+                                color:#6A1B9A;
+                                white-space:nowrap">
+                                <i class="bi bi-robot me-1"></i>
+                                @d.LimbType
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div style="font-size:.82rem;
+                                font-weight:700;
+                                color:#1565C0">
+                                @d.LengthCm cm
+                            </div>
+                            <div style="font-size:.75rem;
+                                color:#7a8999">
+                                × @d.WidthCm cm
+                            </div>
+                        </td>
+                        <td style="font-size:.85rem">
+                            @(d.Material ?? "—")
+                        </td>
+                        <td>
+                            @{
+                                var bg = d.Condition == "جديد"
+                                    ? "#E8F5E9" : "#FFF3E0";
+                                var cl = d.Condition == "جديد"
+                                    ? "#2E7D32" : "#E65100";
+                            }
+                            <span class="badge-status"
+                                  style="background:@bg;color:@cl;
+                                white-space:nowrap">
+                                @(d.Condition ?? "—")
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge-status"
+                                  style="background:#E3F2FD;
+                                color:#1565C0">
+                                @(d.Direction ?? "—")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex
+                                align-items-center gap-1">
+                                <div class="user-avatar"
+                                     style="width:28px;height:28px;
+                                    font-size:.75rem;
+                                    flex-shrink:0">
+                                    @uName.Substring(0, 1)
+                                </div>
+                                <span style="font-size:.82rem;
+                                    overflow:hidden;
+                                    text-overflow:ellipsis;
+                                    white-space:nowrap">
+                                    @uName
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <form asp-action="ToggleAvailable"
+                                  asp-route-id="@d.DeviceId"
+                                  method="post"
+                                  style="display:inline"
+                                  onsubmit="return confirm(
+                                'إعادة تفعيل هذا الجهاز؟')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit"
+                                        class="btn btn-sm btn-success"
+                                        title="تفعيل">
+                                    <i class="bi bi-play-circle me-1"></i>
+                                    تفعيل
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+} *@

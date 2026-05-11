@@ -48,8 +48,7 @@ namespace Da3m.Controllers
         }
 
         // ── GET: Create ─────────────────────
-        public async Task<IActionResult> Create(
-            int userId = 0, int deviceId = 0,int measurementId = 0)
+        public async Task<IActionResult> Create(int userId = 0, int deviceId = 0,int measurementId = 0)
         {
             ViewData["Title"] = "إضافة مطابقة";
 
@@ -219,32 +218,57 @@ namespace Da3m.Controllers
 
         private string GetStatus(decimal pct)
         {
-            if (pct >= 99) return "تطابق ممتاز";
+            if (pct >= 99) return "تطابق ممتاز ⭐";
             if (pct >= 95) return "جيد جداً";
             if (pct >= 90) return "جيد";
             if (pct >= 85) return "مقبول";
             return "تطابق ضعيف";
         }
         private decimal CalculateMatch(
-            Measurement patient, Prostheses device)
+     Measurement patient, Prostheses device)
         {
             decimal score = 0;
-            var patType = patient.LimbType?.ToLower() ?? "";
-            var devType = device.LimbType?.ToLower() ?? "";
 
-            if (patType == devType) score += 40;
-            else if (patType.Contains("علوي") &&
-                     devType.Contains("علوي")) score += 30;
-            else if (patType.Contains("سفلي") &&
-                     devType.Contains("سفلي")) score += 30;
-            else return 0;
+            var patType = patient.LimbType?.ToLower().Trim() ?? "";
+            var devType = device.LimbType?.ToLower().Trim() ?? "";
 
-            decimal ld = Math.Abs(patient.LengthCm - device.LengthCm);
+            // ✅ تحقق من نفس الفئة (علوي/سفلي)
+            bool patUpper = patType.Contains("علوي");
+            bool patLower = patType.Contains("سفلي");
+            bool devUpper = devType.Contains("علوي");
+            bool devLower = devType.Contains("سفلي");
+
+            // ❌ فئات مختلفة كلياً — لا تطابق
+            if (patUpper && devLower) return 0;
+            if (patLower && devUpper) return 0;
+
+            // ✅ نفس الفئة
+            if (patType == devType)
+            {
+                // تطابق كامل في النوع
+                score += 40;
+            }
+            else if ((patUpper && devUpper) ||
+                     (patLower && devLower))
+            {
+                // نفس الفئة لكن مختلف التفاصيل
+                score += 30;
+            }
+            else
+            {
+                return 0;
+            }
+
+            // ✅ الطول — 30 نقطة
+            decimal ld = Math.Abs(
+                patient.LengthCm - device.LengthCm);
             if (ld == 0) score += 30;
             else if (ld <= 2) score += 20;
             else if (ld <= 5) score += 10;
 
-            decimal wd = Math.Abs(patient.WidthCm - device.WidthCm);
+            // ✅ العرض — 30 نقطة
+            decimal wd = Math.Abs(
+                patient.WidthCm - device.WidthCm);
             if (wd == 0) score += 30;
             else if (wd <= 1) score += 20;
             else if (wd <= 2) score += 10;

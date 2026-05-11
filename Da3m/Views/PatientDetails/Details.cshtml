@@ -1,66 +1,345 @@
 ﻿@model Da3m.Domain.PatientDetail
 @{
     ViewData["Title"] = "تفاصيل المريض";
+
+    var measurements = ViewBag.Measurements
+        as List<Da3m.Domain.Measurement>
+        ?? new List<Da3m.Domain.Measurement>();
+
+    var matches = ViewBag.Matches
+        as List<Da3m.Domain.Match>
+        ?? new List<Da3m.Domain.Match>();
+
+    var devicesDict = ViewBag.DevicesDict
+        as Dictionary<int, string>
+        ?? new Dictionary<int, string>();
+
+    bool isAdmin = ViewBag.CurrentRole?.ToString()
+                       .ToLower() == "admin"
+                || ViewBag.CurrentRole?.ToString() == "مدير";
 }
 
-<div class="page-header">
-    <h2>
-        <i class="bi bi-person-heart me-2"></i>
-        تفاصيل المريض
-    </h2>
-</div>
-
-<div class="da3m-table p-4" style="max-width:600px">
-    <div class="row g-3">
-        <div class="col-6">
-            <div class="text-muted" style="font-size:.82rem">
-                الرقم الوطني
-            </div>
-            <div class="fw-bold">@Model.NationalId</div>
-        </div>
-        <div class="col-6">
-            <div class="text-muted" style="font-size:.82rem">
-                تاريخ الميلاد
-            </div>
-            <div class="fw-bold">
-                @Model.BirthDate.ToString("yyyy/MM/dd")
-            </div>
-        </div>
-        <div class="col-6">
-            <div class="text-muted" style="font-size:.82rem">
-                الجنس
-            </div>
-            <div class="fw-bold">@(Model.Gender ?? "—")</div>
-        </div>
-        <div class="col-6">
-            <div class="text-muted" style="font-size:.82rem">
-                العنوان
-            </div>
-            <div class="fw-bold">@(Model.Address ?? "—")</div>
-        </div>
-        <div class="col-12">
-            <div class="text-muted" style="font-size:.82rem">
-                نوع الإعاقة
-            </div>
-            <div class="fw-bold">
-                @(Model.DisabilityType ?? "—")
-            </div>
-        </div>
+<div class="page-header d-flex justify-content-between
+    align-items-center">
+    <div>
+        <h2>
+            <i class="bi bi-person-heart me-2"></i>
+            تفاصيل المريض
+        </h2>
+        <p>الملف الطبي الكامل للمريض</p>
     </div>
-
-    <div class="mt-4">
+    <div class="d-flex gap-2">
         <a asp-action="Index"
                class="btn btn-outline-secondary">
             <i class="bi bi-arrow-right me-1"></i> رجوع
         </a>
-        @if (ViewBag.CurrentRole?.ToString().ToLower() == "admin"
-                          || ViewBag.CurrentRole?.ToString() == "مدير")
+        @if (isAdmin)
         {
             <a asp-action="Edit"
                    asp-route-id="@Model.UserId"
-                   class="btn btn-warning ms-2">
+                   class="btn btn-warning">
                 <i class="bi bi-pencil me-1"></i> تعديل
             </a>
         }
+    </div>
+</div>
+
+<div class="row g-3">
+
+    <!-- ── بطاقة المريض ── -->
+    <div class="col-md-4">
+        <div class="da3m-table p-4 text-center">
+
+            <!-- Avatar -->
+            <div class="user-avatar mx-auto mb-3"
+                 style="width:80px;height:80px;
+                font-size:2rem;
+                background:linear-gradient(
+                135deg,#E65100,#FF8F00)">
+                @(ViewBag.UserName?.ToString()
+                    .Substring(0, 1) ?? "م")
+            </div>
+
+            <h5 class="fw-bold mb-1">
+                @ViewBag.UserName
+            </h5>
+            <span class="badge-status mb-3 d-inline-block"
+                  style="background:#FCE4EC;color:#AD1457">
+                <i class="bi bi-person-heart me-1"></i>
+                مريض
+            </span>
+
+            <hr />
+
+            <!-- بيانات التواصل -->
+            <div class="text-start">
+                <div class="mb-3">
+                    <div class="text-muted"
+                         style="font-size:.78rem">
+                        <i class="bi bi-envelope me-1"></i>
+                        البريد الإلكتروني
+                    </div>
+                    <div class="fw-bold"
+                         style="font-size:.88rem">
+                        @ViewBag.UserEmail
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-muted"
+                         style="font-size:.78rem">
+                        <i class="bi bi-phone me-1"></i>
+                        الهاتف
+                    </div>
+                    <div class="fw-bold"
+                         style="font-size:.88rem">
+                        @ViewBag.UserPhone
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            <!-- إحصائيات سريعة -->
+            <div class="row g-2 text-center">
+                <div class="col-6">
+                    <div class="p-2 rounded"
+                         style="background:#E3F2FD">
+                        <div class="fw-bold"
+                             style="color:#1565C0;
+                            font-size:1.3rem">
+                            @measurements.Count
+                        </div>
+                        <div style="font-size:.72rem;
+                            color:#7a8999">
+                            قياسات
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-2 rounded"
+                         style="background:#E0F7FA">
+                        <div class="fw-bold"
+                             style="color:#00838F;
+                            font-size:1.3rem">
+                            @matches.Count
+                        </div>
+                        <div style="font-size:.72rem;
+                            color:#7a8999">
+                            مطابقات
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── التفاصيل الطبية + القياسات + المطابقات ── -->
+    <div class="col-md-8">
+
+        <!-- البيانات الطبية -->
+        <div class="da3m-table p-4 mb-3">
+            <h6 class="fw-bold mb-3" style="color:#1565C0">
+                <i class="bi bi-clipboard-pulse me-1"></i>
+                البيانات الطبية
+            </h6>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="p-3 rounded"
+                         style="background:#F8F9FA">
+                        <div class="text-muted mb-1"
+                             style="font-size:.78rem">
+                            الرقم الوطني
+                        </div>
+                        <div class="fw-bold">
+                            @Model.NationalId
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 rounded"
+                         style="background:#F8F9FA">
+                        <div class="text-muted mb-1"
+                             style="font-size:.78rem">
+                            تاريخ الميلاد
+                        </div>
+                        <div class="fw-bold">
+                            @Model.BirthDate.ToString("yyyy/MM/dd")
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 rounded"
+                         style="background:#F8F9FA">
+                        <div class="text-muted mb-1"
+                             style="font-size:.78rem">
+                            الجنس
+                        </div>
+                        <div class="fw-bold">
+                            @(Model.Gender ?? "—")
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 rounded"
+                         style="background:#F8F9FA">
+                        <div class="text-muted mb-1"
+                             style="font-size:.78rem">
+                            العنوان
+                        </div>
+                        <div class="fw-bold">
+                            @(Model.Address ?? "—")
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="p-3 rounded"
+                         style="background:#FCE4EC">
+                        <div class="text-muted mb-1"
+                             style="font-size:.78rem;
+                            color:#AD1457">
+                            <i class="bi bi-bandaid me-1"></i>
+                            نوع الإعاقة
+                        </div>
+                        <div class="fw-bold"
+                             style="color:#AD1457">
+                            @(Model.DisabilityType ?? "—")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- آخر القياسات -->
+        <div class="da3m-table p-4 mb-3">
+            <h6 class="fw-bold mb-3" style="color:#1565C0">
+                <i class="bi bi-rulers me-1"></i>
+                القياسات
+                <span class="badge ms-2"
+                      style="background:#E3F2FD;
+                             color:#1565C0;
+                             font-size:.75rem">
+                    @measurements.Count
+                </span>
+            </h6>
+
+            @if (!measurements.Any())
+            {
+                <p class="text-muted mb-0"
+                   style="font-size:.85rem">
+                    لا توجد قياسات مسجلة
+                </p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>نوع الطرف</th>
+                                <th>الطول</th>
+                                <th>العرض</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var m in measurements)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="badge-status"
+                                              style="background:#F3E5F5;
+                                                     color:#6A1B9A;
+                                                     font-size:.78rem">
+                                            @m.LimbType
+                                        </span>
+                                    </td>
+                                    <td>@m.LengthCm cm</td>
+                                    <td>@m.WidthCm cm</td>
+                                    <td style="font-size:.82rem;color:#7a8999">
+                                        @m.MeasuredAt.ToString("yyyy/MM/dd")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <!-- المطابقات -->
+        <div class="da3m-table p-4">
+            <h6 class="fw-bold mb-3" style="color:#00838F">
+                <i class="bi bi-shuffle me-1"></i>
+                المطابقات
+                <span class="badge ms-2"
+                      style="background:#E0F7FA;
+                             color:#00838F;
+                             font-size:.75rem">
+                    @matches.Count
+                </span>
+            </h6>
+
+            @if (!matches.Any())
+            {
+                <p class="text-muted mb-0"
+                   style="font-size:.85rem">
+                    لا توجد مطابقات مسجلة
+                </p>
+            }
+            else
+            {
+                foreach (var m in matches)
+                {
+                    var dName = devicesDict.ContainsKey(m.DeviceId)? devicesDict[m.DeviceId] : "—";
+
+                    var pct   = m.MatchPercentage;
+                    var color = pct >= 99 ? "#1B5E20"
+                              : pct >= 95 ? "#2E7D32"
+                              : pct >= 90 ? "#558B2F"
+                              : pct >= 85 ? "#E65100"
+                              : "#C62828";
+                    var bg    = pct >= 99 ? "#E8F5E9"
+                              : pct >= 95 ? "#F1F8E9"
+                              : pct >= 90 ? "#F9FBE7"
+                              : pct >= 85 ? "#FFF3E0"
+                              : "#FFEBEE";
+
+                    <div class="p-3 rounded mb-2"
+                         style="background:#F8F9FA">
+                        <div class="d-flex justify-content-between
+                            align-items-center mb-2">
+                            <div>
+                                <span class="fw-bold"
+                                      style="font-size:.88rem">
+                                    <i class="bi bi-robot me-1"
+                                       style="color:#6A1B9A"></i>
+                                    @dName
+                                </span>
+                                <span class="text-muted ms-2"
+                                      style="font-size:.78rem">
+                                    @m.MatchDate.ToString("yyyy/MM/dd")
+                                </span>
+                            </div>
+                            <span class="badge-status"
+                                  style="background:@bg;
+                                color:@color">
+                                @pct% — @m.Status
+                            </span>
+                        </div>
+                        <!-- شريط النسبة -->
+                        <div style="height:6px;
+                            background:#E0E0E0;
+                            border-radius:3px">
+                            <div style="width:@pct%;
+                                height:100%;
+                                background:@color;
+                                border-radius:3px;
+                                transition:width .5s">
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
     </div>
 </div>

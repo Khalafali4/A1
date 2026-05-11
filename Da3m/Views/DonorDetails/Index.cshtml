@@ -1,131 +1,216 @@
 ﻿@model IEnumerable<Da3m.Domain.DonorDetail>
 @{
     ViewData["Title"] = "المتبرعون";
+    var usersDict = ViewData["UsersDict"]
+                    as Dictionary<int, string>
+                    ?? new Dictionary<int, string>();
+
+    var donCounts = ViewBag.DonationCounts
+        as Dictionary<int, int>
+        ?? new Dictionary<int, int>();
+
+    var donTotals = ViewBag.DonationTotals
+        as Dictionary<int, decimal>
+        ?? new Dictionary<int, decimal>();
+
+    decimal grandTotal = (decimal)(ViewBag.GrandTotal ?? 0m);
+    int totalOps = (int)(ViewBag.TotalOps ?? 0);
 }
 
-<div class="page-header d-flex justify-content-between align-items-center">
+<div class="page-header d-flex justify-content-between
+             align-items-center">
     <div>
-        <h2><i class="bi bi-gift-fill me-2"></i>المتبرعون</h2>
-        <p>إدارة جميع المتبرعين في المنصة</p>
+        <h2><i class="bi bi-gift-fill me-2"
+               style="color:#E65100"></i>المتبرعون</h2>
+        <p>قائمة المتبرعين في منصة دعم</p>
     </div>
-    @if (ViewBag.CurrentUserRole?.ToString().ToLower() == "admin" || ViewBag.CurrentUserRole?.ToString() == "مدير")
-    {
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i> إضافة متبرع
-        </a>                        
-    }
-    
-
 </div>
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show">
-        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+    <div class="alert alert-success
+                 alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>
+        @TempData["Success"]
         <button type="button" class="btn-close"
                 data-bs-dismiss="alert"></button>
     </div>
 }
 
-@if (Model == null || !Model.Any())
-{
-    <div class="alert alert-info">
-        <i class="bi bi-info-circle me-2"></i>
-        لا يوجد متبرعون مسجلون حالياً
+@* @{
+    // ✅ إحصائيات الصفحة
+    var allStats = ViewData["DonationsStats"]
+        as Dictionary<int, dynamic>
+        ?? new Dictionary<int, dynamic>();
+
+    decimal grandTotal = 0m;
+    int totalCount = 0;
+    foreach (var s in allStats.Values)
+    {
+        grandTotal += (decimal)s.Total;
+        totalCount += (int)s.Count;
+    }
+} *@
+
+<!-- إحصائيات -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#FCE4EC">
+                <i class="bi bi-people-fill"
+                   style="color:#AD1457"></i>
+            </div>
+            <div class="stat-num">@Model.Count()</div>
+            <div class="stat-label">إجمالي المتبرعين</div>
+        </div>
     </div>
-}
-else
-{
-    <div class="da3m-table">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>اسم المتبرع</th>
-                    <th>نوع التبرع المفضل</th>
-                    <th>إجمالي التبرعات</th>
-                    <th>عدد الأجهزة المتبرع بها</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (Da3m.Domain.DonorDetail donor in Model)
-                {
-                    <tr>
-                        <td>@donor.UserId</td>
-                        <td>
-                            @{
-                                var dict = ViewData["UsersDict"] as Dictionary<int, string>;
-                                var uName = "—";
-                                if (dict != null &&
-                                    dict.ContainsKey(donor.UserId))
-                                    uName = dict[donor.UserId];
-                            }
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="user-avatar"
-                                     style="width:32px;height:32px;
-                                            font-size:.8rem;
-                                            background:#FCE4EC">
-                                    <span style="color:#AD1457">
-                                        @uName.Substring(0, 1)
-                                    </span>
-                                </div>
-                                <span class="fw-bold">@uName</span>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#E8F5E9">
+                <i class="bi bi-cash-coin"
+                   style="color:#2E7D32"></i>
+            </div>
+            <div class="stat-num">
+                $@grandTotal.ToString("N0")
+            </div>
+            <div class="stat-label">إجمالي التبرعات</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#FFF3E0">
+                <i class="bi bi-receipt"
+                   style="color:#E65100"></i>
+            </div>
+            <div class="stat-num">@totalOps</div>
+            <div class="stat-label">عدد العمليات</div>
+        </div>
+    </div>
+</div>
+
+<!-- Cards المتبرعين -->
+<div class="row g-3">
+    @foreach (Da3m.Domain.DonorDetail donor in Model)
+    {
+        var uName = usersDict.ContainsKey(donor.UserId)
+            ? usersDict[donor.UserId] : "—";
+
+        // ✅ قراءة صحيحة من القاموسين
+        int dCount = donCounts.ContainsKey(donor.UserId)
+            ? donCounts[donor.UserId] : 0;
+        decimal dTotal = donTotals.ContainsKey(donor.UserId)
+            ? donTotals[donor.UserId] : 0m;
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm"
+                 style="border-radius:16px;overflow:hidden">
+
+                <!-- Header -->
+                <div class="p-4 pb-3"
+                     style="background:linear-gradient(
+                                135deg,#FFF3E0,#FCE4EC)">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="user-avatar"
+                             style="width:52px;height:52px;
+                                    font-size:1.3rem;
+                                    background:linear-gradient(
+                                        135deg,#E65100,#AD1457);
+                                    flex-shrink:0">
+                            @uName.Substring(0, 1)
+                        </div>
+                        <div>
+                            <div class="fw-bold"
+                                 style="font-size:.95rem">
+                                @uName
                             </div>
-                        </td>
-                        <td>
                             @if (donor.PreferredDonationType != null)
                             {
                                 <span class="badge-status"
-                                      style="background:#FCE4EC;
-                                             color:#AD1457">
+                                      style="background:rgba(230,81,0,.15);
+                                             color:#E65100;
+                                             font-size:.75rem">
+                                    <i class="bi bi-heart me-1"></i>
                                     @donor.PreferredDonationType
                                 </span>
                             }
-                            else
-                            {
-                                <span class="text-muted">—</span>
-                            }
-                        </td>
-                        <td>
-                            <span class="fw-bold"
-                                  style="color:#2E7D32">
-                                @(donor.TotalDonatedAmount?.ToString("N2") ?? "0.00")
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge-status"
-                                  style="background:#E3F2FD;
-                                         color:#1565C0">
-                                @(donor.DonatedDevicesCount ?? 0)
-                              
-                            </span>
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1">
-                                <a asp-action="Edit"
-                                       asp-route-id="@donor.UserId"
-                                       class="btn btn-sm btn-outline-warning"
-                                       title="تعديل">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form asp-action="Delete"
-                                      asp-route-id="@donor.UserId"
-                                      method="post"
-                                      style="display:inline"
-                                      onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit"
-                                            class="btn btn-sm btn-outline-danger"
-                                            title="حذف">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                        </div>
+                    </div>
+                </div>
+                <!-- Body -->
+                <div class="p-4 pt-3">
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="p-2 rounded text-center"
+                                 style="background:#E8F5E9">
+                                <div class="fw-bold"
+                                     style="color:#2E7D32;
+                                    font-size:1.1rem">
+                                    $@dTotal.ToString("N0")
+                                </div>
+                                <div style="font-size:.72rem;
+                                    color:#7a8999">
+                                    إجمالي التبرعات
+                                </div>
                             </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-}
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded text-center"
+                                 style="background:#E3F2FD">
+                                <div class="fw-bold"
+                                     style="color:#1565C0;
+                                    font-size:1.1rem">
+                                    @dCount
+                                </div>
+                                <div style="font-size:.72rem;
+                                    color:#7a8999">
+                                    عدد التبرعات
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- أجهزة تبرع بها -->
+                    <div class="p-2 rounded text-center mb-3"
+                         style="background:#F3E5F5">
+                        <div class="fw-bold"
+                             style="color:#6A1B9A">
+                            @(donor.DonatedDevicesCount ?? 0)
+                            <small style="font-size:.72rem;
+                                font-weight:400">
+                                جهاز تعويضي
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a asp-action="Details"
+                           asp-route-id="@donor.UserId"
+                           class="btn btn-sm btn-outline-info
+                            flex-fill">
+                            <i class="bi bi-eye me-1"></i>
+                            التفاصيل
+                        </a>
+                        <form asp-action="Delete"
+                              asp-route-id="@donor.UserId"
+                              method="post"
+                              style="display:inline"
+                              onsubmit="return confirm(
+                            'إيقاف هذا المتبرع؟')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit"
+                                    class="btn btn-sm
+                                btn-outline-warning"
+                                    title="إيقاف">
+                                <i class="bi bi-person-slash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+

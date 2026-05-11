@@ -1,26 +1,84 @@
 ﻿@model IEnumerable<Da3m.Domain.ManufacturerDetail>
 @{
     ViewData["Title"] = "المصنّعون";
-    var dict = ViewData["UsersDict"] as Dictionary<int, string>;
+    var usersDict = ViewData["UsersDict"]
+                    as Dictionary<int, string>
+                    ?? new Dictionary<int, string>();
+
+    var devCounts = ViewBag.DeviceCounts
+        as Dictionary<int, int>
+        ?? new Dictionary<int, int>();
+
+    var availCounts = ViewBag.AvailableCounts
+        as Dictionary<int, int>
+        ?? new Dictionary<int, int>();
 }
 
-<div class="page-header d-flex justify-content-between align-items-center">
+<div class="page-header d-flex justify-content-between
+             align-items-center">
     <div>
-        <h2><i class="bi bi-building me-2"></i>المصنّعون</h2>
-        <p>إدارة جميع المصنّعين المسجلين في المنصة</p>
+        <h2>
+            <i class="bi bi-building me-2"
+               style="color:#6A1B9A"></i>
+            المصنّعون
+        </h2>
+        <p>شركات تصنيع الأجهزة التعويضية</p>
     </div>
 </div>
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show">
-        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+    <div class="alert alert-success
+                 alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>
+        @TempData["Success"]
         <button type="button" class="btn-close"
                 data-bs-dismiss="alert"></button>
     </div>
 }
 
-@if (Model == null || !Model.Any())
+<!-- إحصائيات -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#F3E5F5">
+                <i class="bi bi-building"
+                   style="color:#6A1B9A"></i>
+            </div>
+            <div class="stat-num">@Model.Count()</div>
+            <div class="stat-label">إجمالي المصنّعين</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#E8F5E9">
+                <i class="bi bi-robot"
+                   style="color:#2E7D32"></i>
+            </div>
+            <div class="stat-num">
+                @devCounts.Values.Sum()
+            </div>
+            <div class="stat-label">إجمالي الأجهزة</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#E3F2FD">
+                <i class="bi bi-check-circle"
+                   style="color:#1565C0"></i>
+            </div>
+            <div class="stat-num">
+                @availCounts.Values.Sum()
+            </div>
+            <div class="stat-label">أجهزة متاحة</div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
 {
     <div class="alert alert-info">
         <i class="bi bi-info-circle me-2"></i>
@@ -29,84 +87,173 @@
 }
 else
 {
-    <div class="da3m-table">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>اسم المستخدم</th>
-                    <th>اسم الشركة</th>
-                    <th>السجل التجاري</th>
-                    <th>الموقع</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (Da3m.Domain.ManufacturerDetail m in Model)
-                {
-                    var uName = "—";
-                    if (dict != null && dict.ContainsKey(m.UserId)) uName = dict[m.UserId];
+    <div class="row g-3">
+        @foreach (Da3m.Domain.ManufacturerDetail mfr in Model)
+        {
+            var uName = usersDict.ContainsKey(mfr.UserId)
+                ? usersDict[mfr.UserId] : "—";
 
-                    <tr>
-                        <td>@m.UserId</td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="user-avatar"
-                                     style="width:32px;height:32px;
-                                            font-size:.8rem">
-                                    @uName.Substring(0, 1)
+            int total = devCounts.ContainsKey(mfr.UserId)
+                ? devCounts[mfr.UserId] : 0;
+
+            int avail = availCounts.ContainsKey(mfr.UserId)
+                ? availCounts[mfr.UserId] : 0;
+
+            int availPct = total > 0
+                ? (int)((double)avail / total * 100) : 0;
+
+            <div class="col-xl-4 col-md-6">
+                <div class="card border-0 shadow-sm"
+                     style="border-radius:16px;
+                            overflow:hidden">
+
+                    <!-- Header -->
+                    <div class="p-4 pb-3"
+                         style="background:linear-gradient(
+                                    135deg,#F3E5F5,#EDE7F6)">
+                        <div class="d-flex align-items-center
+                                     gap-3">
+                            <div class="user-avatar"
+                                 style="width:52px;height:52px;
+                                        font-size:1.3rem;
+                                background:linear-gradient(135deg,#6A1B9A,#8E24AA);
+                                flex-shrink:0">
+                                @mfr.CompanyName.Substring(0, 1)
+                            </div>
+                            <div>
+                                <div class="fw-bold"
+                                     style="font-size:.95rem;
+                                    color:#4A148C">
+                                    @mfr.CompanyName
                                 </div>
-                                <span class="fw-bold">@uName</span>
+                                <div style="font-size:.78rem;
+                                    color:#7a8999">
+                                    <i class="bi bi-person me-1"></i>
+                                    @uName
+                                </div>
                             </div>
-                        </td>
-                        <td>
-                            <span class="badge-status"
-                                  style="background:#E3F2FD;
-                                         color:#1565C0">
-                                <i class="bi bi-building me-1"></i>
-                                @m.CompanyName
-                            </span>
-                        </td>
-                        <td>@(m.CommercialRegister ?? "—")</td>
-                        <td>
-                            @if (m.Website != null)
-                            {
-                                <a href="@m.Website" target="_blank"
-                                   class="btn btn-sm btn-outline-info">
-                                    <i class="bi bi-globe me-1"></i>
-                                    الموقع
-                                </a>
-                            }
-                            else
-                            {
-                                <span class="text-muted">—</span>
-                            }
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1">
-                                <a asp-action="Edit"
-                                   asp-route-id="@m.UserId"
-                                   class="btn btn-sm btn-outline-warning"
-                                   title="تعديل">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form asp-action="Delete"
-                                      asp-route-id="@m.UserId"
-                                      method="post"
-                                      style="display:inline"
-                                      onsubmit="return confirm(
-                                    'هل أنت متأكد من الحذف؟')">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit"
-                                            class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="p-4 pt-3">
+
+                        <!-- معلومات الشركة -->
+                        @if (mfr.CommercialRegister != null)
+                        {
+                            <div class="mb-2"
+                                 style="font-size:.82rem;
+                                color:#7a8999">
+                                <i class="bi bi-card-text me-1"></i>
+                                سجل: @mfr.CommercialRegister
                             </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                        }
+                        @if (mfr.Website != null)
+                        {
+                            <div class="mb-3"
+                                 style="font-size:.82rem">
+                                <i class="bi bi-globe me-1"
+                                   style="color:#1565C0"></i>
+                                <a href="@mfr.Website"
+                                   target="_blank"
+                                   style="color:#1565C0">
+                                    @mfr.Website
+                                </a>
+                            </div>
+                        }
+
+                        <!-- إحصائيات الأجهزة -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-2 rounded
+                                    text-center"
+                                     style="background:#F3E5F5">
+                                    <div class="fw-bold"
+                                         style="color:#6A1B9A;
+                                        font-size:1.1rem">
+                                        @total
+                                    </div>
+                                    <div style="font-size:.72rem;
+                                        color:#7a8999">
+                                        إجمالي الأجهزة
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 rounded
+                                    text-center"
+                                     style="background:#E8F5E9">
+                                    <div class="fw-bold"
+                                         style="color:#2E7D32;
+                                        font-size:1.1rem">
+                                        @avail
+                                    </div>
+                                    <div style="font-size:.72rem;
+                                        color:#7a8999">
+                                        متاحة
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- شريط التوفر -->
+                        @if (total > 0)
+                        {
+                            <div class="mb-3">
+                                <div class="d-flex
+                                    justify-content-between
+                                    mb-1"
+                                     style="font-size:.75rem">
+                                    <span class="text-muted">
+                                        نسبة التوفر
+                                    </span>
+                                    <span style="color:#2E7D32;
+                                        font-weight:700">
+                                        @availPct%
+                                    </span>
+                                </div>
+                                <div style="height:6px;
+                                    background:#E0E0E0;
+                                    border-radius:3px">
+                                    <div style="width:@availPct%;
+                                        height:100%;
+                                        background:#2E7D32;
+                                        border-radius:3px">
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- أزرار -->
+                        <div class="d-flex gap-2">
+                            <a asp-action="Details"
+                               asp-route-id="@mfr.UserId"
+                               class="btn btn-sm
+                                btn-outline-info flex-fill">
+                                <i class="bi bi-eye me-1"></i>
+                                التفاصيل
+                            </a>
+                            <a asp-action="Edit"
+                               asp-route-id="@mfr.UserId"
+                               class="btn btn-sm
+                                btn-outline-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form asp-action="Delete"
+                                  asp-route-id="@mfr.UserId"
+                                  method="post"
+                                  style="display:inline"
+                                  onsubmit="return confirm(
+                                'إيقاف هذا المصنّع؟')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit"
+                                        class="btn btn-sm
+                                    btn-outline-warning">
+                                    <i class="bi bi-person-slash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 }

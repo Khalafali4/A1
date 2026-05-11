@@ -13,21 +13,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet" />
     <style>
         * { font-family: 'Cairo', sans-serif; }
+
         body {
-            background: linear-gradient(135deg, #0D47A1 0%, #1565C0 50%, #00ACC1 100%);
             min-height: 100vh;
             display: flex;
+            background: #F0F4F8;
+        }
+
+        /* ─ـ الجانب الأيسر — نموذج الدخول ─ـ */
+        .right-panel {
+            width: 460px;
+            background: white;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 50px 40px;
+            /* ✅ غيّر من left إلى right */
+            box-shadow: 10px 0 40px rgba(0,0,0,.08);
         }
-        .auth-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 20px 60px rgba(0,0,0,.2);
-        }
+
         .logo-box {
             width: 70px; height: 70px;
             background: linear-gradient(135deg, #1565C0, #00ACC1);
@@ -37,118 +42,228 @@
             justify-content: center;
             font-size: 2rem;
             color: white;
-            margin: 0 auto 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(21,101,192,.3);
         }
-        .form-control, .form-select {
+
+        .form-control {
             border-radius: 10px;
-            padding: 12px 16px;
+            padding: 12px 44px 12px 16px;
             border: 2px solid #E0E7EF;
             font-family: 'Cairo', sans-serif;
+            transition: border-color .2s;
         }
-        .form-control:focus, .form-select:focus {
+
+        .form-control:focus {
             border-color: #1565C0;
             box-shadow: 0 0 0 3px rgba(21,101,192,.1);
         }
-        .btn-auth {
-            background: linear-gradient(135deg, #1565C0, #00ACC1);
-            border: none;
-            border-radius: 10px;
-            padding: 12px;
-            font-size: 1rem;
-            font-weight: 700;
-            color: white;
-            width: 100%;
+
+        .input-wrapper {
+            position: relative;
         }
-        .btn-auth:hover { opacity: .9; color: white; }
-        .input-icon { position: relative; }
-        .input-icon i {
+
+        .input-wrapper i {
             position: absolute;
             right: 14px;
             top: 50%;
             transform: translateY(-50%);
             color: #7a8999;
+            font-size: 1rem;
+        }.btn-login {
+            background: linear-gradient(135deg, #1565C0, #00ACC1);
+            border: none;
+            border-radius: 10px;
+            padding: 13px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+            width: 100%;
+            transition: opacity .2s, transform .1s;
         }
-        .input-icon input { padding-right: 42px; }
+
+        .btn-login:hover {
+            opacity: .92;
+            color: white;
+            transform: translateY(-1px);
+        }
+
         .divider {
             display: flex;
             align-items: center;
             gap: 10px;
+            color: #aaa;
+            font-size: .82rem;
             margin: 20px 0;
-            color: #7a8999;
-            font-size: .85rem;
         }
+
         .divider::before, .divider::after {
             content: '';
             flex: 1;
             height: 1px;
             background: #E0E7EF;
         }
+
+        /* ─ـ الجانب الأيمن — معلومات المنصة ─ـ */
+        .left-panel {
+            flex: 1;
+            background: linear-gradient(
+                135deg,
+                #0D47A1 0%,
+                #1565C0 50%,
+                #00ACC1 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            background: rgba(255,255,255,.05);
+            border-radius: 50%;
+            top: -100px; left: -100px;
+        }
+
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            width: 300px; height: 300px;
+            background: rgba(255,255,255,.05);
+            border-radius: 50%;
+            bottom: -80px; right: -80px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(255,255,255,.1);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,.15);
+        }
+
+        .feature-icon {
+            width: 44px; height: 44px;
+            background: rgba(255,255,255,.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        /* Mobile --> */
+        @@media (max-width: 768px) {
+            .left-panel { display: none; }
+            .right-panel { width: 100%; }
+        }
     </style>
 </head>
 <body>
-<div class="auth-card">
+
+<!-- ✅ Form أولاً (يظهر على اليمين في RTL) -->
+<div class="right-panel">
+    <!-- محتوى الـ Form -->
     <div class="logo-box">
         <i class="bi bi-heart-pulse-fill"></i>
     </div>
-    <h4 class="text-center fw-bold mb-1" style="color:#0D47A1">
-        منصة دعم
-    </h4>
-    <p class="text-center text-muted mb-4" style="font-size:.88rem">
-        سجّل دخولك للمتابعة
-    </p>
-    @* var user = users.FirstOrDefault(); *@
+    <h4 style="color:#0D47A1;font-weight:900; margin-bottom:4px">مرحباً بك</h4>
+    <p style="color:#7a8999;font-size:.88rem; margin-bottom:28px">سجّل دخولك للوصول إلى المنصة</p>
+
     @if (ViewBag.Error != null)
     {
-        <div class="alert alert-danger py-2"
-             style="font-size:.88rem;border-radius:10px">
+        <div class="alert alert-danger w-100 py-2" style="font-size:.88rem;border-radius:10px; border:none;background:#FFEBEE; color:#C62828">
             <i class="bi bi-exclamation-circle me-1"></i>
             @ViewBag.Error
         </div>
     }
 
-    <form asp-action="Login" method="post">
+    <form asp-action="Login" method="post" style="width:100%">
         @Html.AntiForgeryToken()
 
         <div class="mb-3">
-            <label class="form-label fw-bold" style="color:#374151">
-                البريد الإلكتروني
-            </label>
-            <div class="input-icon">
+            <label class="form-label fw-bold" style="color:#374151;font-size:.9rem">البريد الإلكتروني</label>
+            <div class="input-wrapper">
                 <i class="bi bi-envelope"></i>
-                <input type="email" name="email"
-                       class="form-control"
-                       placeholder="example@mail.com"
-                       required />
-            </div>
-        </div>
-        <div class="mb-4">
-            <label class="form-label fw-bold" style="color:#374151">
-                كلمة المرور
-            </label>
-            <div class="input-icon">
-                <i class="bi bi-lock"></i>
-                <input type="password" name="password"
-                       class="form-control"
-                       placeholder="••••••••"
-                       required />
+                <input type="email" name="email" class="form-control" placeholder="example@mail.com" required />
             </div>
         </div>
 
-        <button type="submit" class="btn btn-auth">
-            <i class="bi bi-box-arrow-in-right me-2"></i>
-            تسجيل الدخول
+        <div class="mb-4">
+            <label class="form-label fw-bold" style="color:#374151;font-size:.9rem">كلمة المرور</label>
+            <div class="input-wrapper">
+                <i class="bi bi-lock"></i>
+                <input type="password" name="password" class="form-control" placeholder="••••••••" required />
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-login mb-3">
+            <i class="bi bi-box-arrow-in-right me-2"></i> تسجيل الدخول
         </button>
     </form>
 
-    <div class="divider">أو</div>
+    <div class="divider" style="width:100%">أو</div>
 
-    <a asp-action="Register"
-       class="btn btn-outline-primary w-100"
-       style="border-radius:10px;font-weight:700">
-        <i class="bi bi-person-plus me-2"></i>
-        إنشاء حساب جديد
+    <a asp-action="Register" class="btn btn-outline-primary w-100" style="border-radius:10px;font-weight:700; padding:12px">
+        <i class="bi bi-person-plus me-2"></i> إنشاء حساب جديد
     </a>
+
+    <p class="text-muted mt-4 text-center" style="font-size:.78rem">
+        منصة دعم © @DateTime.Now.Year — جميع الحقوق محفوظة
+    </p>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ✅ المعلومات ثانياً (يظهر على اليسار في RTL) -->
+<div class="left-panel">
+    <div style="position:relative;z-index:1;text-align:center;max-width:400px">
+        <div style="font-size:3.5rem;margin-bottom:10px">🏥</div>
+        <h2 style="color:white;font-weight:900;font-size:2rem;margin-bottom:6px">منصة دعم</h2>
+        <p style="color:rgba(255,255,255,.75);font-size:.95rem;margin-bottom:36px">منصة متكاملة لدعم ذوّي الإعاقة الحركية</p>
+
+        <div class="feature-item">
+            <div class="feature-icon"><i class="bi bi-shuffle"></i></div>
+            <div style="text-align:right">
+                <div style="color:white;font-weight:700;font-size:.9rem">نظام مطابقة ذكي</div>
+                <div style="color:rgba(255,255,255,.65);font-size:.8rem">مطابقة المرضى بالأجهزة المناسبة</div>
+            </div>
+        </div>
+
+        <div class="feature-item">
+            <div class="feature-icon"><i class="bi bi-robot"></i></div>
+            <div style="text-align:right">
+                <div style="color:white;font-weight:700;font-size:.9rem">إدارة الأجهزة التعويضية</div>
+                <div style="color:rgba(255,255,255,.65);font-size:.8rem">تتبع وإدارة جميع الأجهزة</div>
+            </div>
+        </div>
+
+        <div class="feature-item">
+            <div class="feature-icon"><i class="bi bi-cash-coin"></i></div>
+            <div style="text-align:right">
+                <div style="color:white;font-weight:700;font-size:.9rem">نظام التبرعات</div>
+                <div style="color:rgba(255,255,255,.65);font-size:.8rem">إدارة التبرعات المالية والعينية</div>
+            </div>
+        </div>
+
+        <div class="feature-item">
+            <div class="feature-icon"><i class="bi bi-file-medical-fill"></i></div>
+            <div style="text-align:right">
+                <div style="color:white;font-weight:700;font-size:.9rem">تقارير الزيارات الطبية</div>
+                <div style="color:rgba(255,255,255,.65);font-size:.8rem">متابعة شاملة لكل مريض</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

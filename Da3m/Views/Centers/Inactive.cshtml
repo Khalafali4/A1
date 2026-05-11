@@ -1,0 +1,92 @@
+﻿@model IEnumerable<Da3m.Domain.Center>
+@{
+    ViewData["Title"] = "المراكز غير النشطة";
+}
+<div class="page-header d-flex justify-content-between
+    align-items-center">
+    <div>
+        <h2>
+            <i class="bi bi-pause-circle me-2"></i>
+            المراكز غير النشطة
+        </h2>
+        <p>يمكنك إعادة تفعيلها في أي وقت</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-right me-1"></i>
+        المراكز النشطة
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>
+        @TempData["Success"]
+        <button type="button" class="btn-close"
+                data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        لا توجد مراكز موقوفة
+    </div>
+}
+else
+{
+    <div class="da3m-table">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>اسم المركز</th>
+                    <th>الموقع</th>
+                    <th>الهاتف</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Da3m.Domain.Center center in Model)
+                {
+                    <tr style="opacity:.7">
+                        <td>@center.CenterId</td>
+                        <td>
+                            <div class="d-flex
+                                align-items-center gap-2">
+                                <div style="width:36px;height:36px;
+                                    background:#FFEBEE;
+                                    border-radius:8px;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    color:#C62828">
+                                    <i class="bi bi-hospital"></i>
+                                </div>
+                                <span class="fw-bold">
+                                    @center.CenterName
+                                </span>
+                            </div>
+                        </td>
+                        <td>@center.LocationText</td>
+                        <td>@center.Phone</td>
+                        <td>
+                            <form asp-action="Activate"
+                                  asp-route-id="@center.CenterId"
+                                  method="post"
+                                  style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit"
+                                        class="btn btn-sm btn-success">
+                                    <i class="bi bi-play-circle me-1"></i>
+                                    تفعيل
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

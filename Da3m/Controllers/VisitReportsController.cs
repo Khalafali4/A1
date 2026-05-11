@@ -1,13 +1,6 @@
-﻿using Da3m.Data;
-using Da3m.Data.Repositories;
+﻿using Da3m.Data.Repositories;
 using Da3m.Domain;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Da3m.Controllers
 {
@@ -20,29 +13,50 @@ namespace Da3m.Controllers
             _context = context;
         }
 
-        // ── GET: VisitReports ───────────────
+        // ── GET: Index ──────────────────────
         public async Task<IActionResult> Index()
         {
+            if (!IsAdmin() && !IsDoctor())
+                return AccessDenied();
+
             ViewData["Title"] = "تقارير الزيارات";
+
             var reports = await _context.VisitReports.GetAllAsync();
+            var list = reports
+                .OrderByDescending(r => r.ReportDate)
+                .ToList();
 
-            var centers = await _context.Centers.GetAllAsync();
-            ViewData["CentersDict"] = centers
-                .ToDictionary(c => c.CenterId, c => c.CenterName);
-
+            // ✅ جيب أسماء المرضى عبر المطابقات
             var matches = await _context.Matches.GetAllAsync();
-            ViewData["MatchesDict"] = matches
-                .ToDictionary(m => m.MatchId,
-                    m => $"مطابقة #{m.MatchId}");
+            var users = await _context.Users.GetAllAsync();
+            var centers = await _context.Centers.GetAllAsync();
+            var devices = await _context.Prostheses.GetAllAsync();
 
-            return View(reports ?? new List<VisitReport>());
+            var matchesDict = matches.ToDictionary(
+                m => m.MatchId, m => m);
+            var usersDict = users.ToDictionary(
+                u => u.UserId, u => u.FullName);
+            var centersDict = centers.ToDictionary(
+                c => c.CenterId, c => c.CenterName);
+            var devicesDict = devices.ToDictionary(
+                d => d.DeviceId, d => d.LimbType);
+
+            ViewData["MatchesDict"] = matchesDict;
+            ViewData["UsersDict"] = usersDict;
+            ViewData["CentersDict"] = centersDict;
+            ViewData["DevicesDict"] = devicesDict;
+
+            ViewBag.TotalReports = list.Count;
+
+            return View(list);
         }
 
-        // ── GET: VisitReports/Create ────────
-        public async Task<IActionResult> Create(int patientId = 0)
+        // ── GET: Create ─────────────────────
+        public async Task<IActionResult> Create(
+            int patientId = 0)
         {
-            // Only doctors can add visit reports
-            if (!IsDoctor() && !IsAdmin()) return AccessDenied();
+            if (!IsDoctor() && !IsAdmin())
+                return AccessDenied();
 
             ViewData["Title"] = "إضافة تقرير زيارة";
 
@@ -54,14 +68,15 @@ namespace Da3m.Controllers
 
             if (patientRole != null)
             {
-                var patients = await _context.Users.FindAsync(u =>
-                    u.RoleId == patientRole.RoleId);
+                var patients = await _context.Users
+                    .FindAsync(u =>
+                        u.RoleId == patientRole.RoleId &&
+                        !u.IsDeleted);
                 ViewData["Patients"] = patients.ToList();
             }
             else
             {
-                ViewData["Patients"] = (await _context.Users
-                    .GetAllAsync()).ToList();
+                ViewData["Patients"] = new List<User>();
             }
 
             // ✅ مطابقات المريض المختار فقط
@@ -69,109 +84,183 @@ namespace Da3m.Controllers
             {
                 var patientMatches = await _context.Matches
                     .FindAsync(m => m.UserId == patientId);
-                ViewData["Matches"] = patientMatches
+
+                var devices = await _context.Prostheses.GetAllAsync();
+                var devDict = devices.ToDictionary(
+                    d => d.DeviceId, d => d.LimbType);
+
+                // ✅ أضف اسم الجهاز لكل مطابقة
+                ViewBag.MatchesList = patientMatches
                     .OrderByDescending(m => m.MatchDate)
-                    .ToList();
+                    .Select(m => new {
+                        m.MatchId,
+                        m.MatchPercentage,
+                        m.Status,
+                        DeviceName = devDict.ContainsKey(m.DeviceId)
+                            ? devDict[m.DeviceId] : "—",
+                        Date = m.MatchDate.ToString("yyyy/MM/dd")
+                    }).ToList();
+
                 ViewBag.SelectedPatientId = patientId;
             }
             else
             {
-                ViewData["Matches"] = new List<Da3m.Domain.Match>();
+                ViewBag.MatchesList = new List<object>();
             }
 
-            var centers = await _context.Centers.GetAllAsync();
+            var centers = await _context.Centers
+                .FindAsync(c => c.IsActive);
             ViewData["Centers"] = centers.ToList();
 
             return View();
         }
-
+        // ── POST: Create ────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             VisitReport report, int patientId = 0)
         {
-            // Only doctors can add visit reports
-            if (!IsDoctor() && !IsAdmin()) return AccessDenied();
+            if (!IsDoctor() && !IsAdmin())
+                return AccessDenied();
 
             ModelState.Remove("Center");
             ModelState.Remove("Match");
 
-            // ✅ إذا ضغط تغيير المريض — أعد تحميل
             if (!Request.Form.ContainsKey("action"))
             {
                 return RedirectToAction("Create",
-                    new { patientId = patientId });
+                    new { patientId });
             }
 
             if (ModelState.IsValid)
             {
                 report.ReportDate = DateTime.Now;
                 await _context.VisitReports.AddAsync(report);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(); // ✅
                 TempData["Success"] = "تم إضافة التقرير بنجاح";
                 return RedirectToAction(nameof(Index));
             }
 
-            // إعادة تحميل البيانات عند الخطأ
-            await LoadViewData();
+            // إعادة تحميل عند الخطأ
+            var roles = await _context.Roles.GetAllAsync();
+            var patientRole = roles.FirstOrDefault(r =>
+                r.RoleName.ToLower() == "patient" ||
+                r.RoleName == "مريض");
+
+            if (patientRole != null)
+            {
+                var patients = await _context.Users
+                    .FindAsync(u =>
+                        u.RoleId == patientRole.RoleId &&
+                        !u.IsDeleted);
+                ViewData["Patients"] = patients.ToList();
+            }
+
+            var centers = await _context.Centers
+                .FindAsync(c => c.IsActive);
+            ViewData["Centers"] = centers.ToList();
+            ViewBag.SelectedPatientId = patientId;
+
             return View(report);
         }
 
-        // ── GET: VisitReports/Edit/5 ────────
+        // ── GET: Edit ───────────────────────
         public async Task<IActionResult> Edit(int id)
         {
+            if (!IsAdmin() && !IsDoctor())
+                return AccessDenied();
+
             ViewData["Title"] = "تعديل التقرير";
+
             var report = await _context.VisitReports
-                                   .GetByIdAsync(id);
+                .GetByIdAsync(id);
             if (report == null) return NotFound();
-            await LoadViewData();
+
+            var centers = await _context.Centers
+                .FindAsync(c => c.IsActive);
+            ViewData["Centers"] = centers.ToList();
+
             return View(report);
         }
 
-        // ── POST: VisitReports/Edit/5 ───────
+        // ── POST: Edit ──────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
             int id, VisitReport report)
         {
+            if (!IsAdmin() && !IsDoctor())
+                return AccessDenied();
+
             if (id != report.ReportId) return NotFound();
+
             ModelState.Remove("Center");
             ModelState.Remove("Match");
 
             if (ModelState.IsValid)
             {
                 _context.VisitReports.Update(report);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(); // ✅
                 TempData["Success"] = "تم تعديل التقرير بنجاح";
                 return RedirectToAction(nameof(Index));
             }
 
-            await LoadViewData();
+            var centers = await _context.Centers
+                .FindAsync(c => c.IsActive);
+            ViewData["Centers"] = centers.ToList();
             return View(report);
         }
 
-        // ── POST: VisitReports/Delete/5 ─────
+        // ── Delete ──────────────────────────
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            if (!IsAdmin()) return AccessDenied();
+
             var report = await _context.VisitReports
-                                   .GetByIdAsync(id);
+                .GetByIdAsync(id);
             if (report == null) return NotFound();
+
             _context.VisitReports.Delete(report);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(); // ✅
             TempData["Success"] = "تم حذف التقرير بنجاح";
             return RedirectToAction(nameof(Index));
         }
 
-        // ── Helper ──────────────────────────
-        private async Task LoadViewData()
+        // ── Details ─────────────────────────
+        public async Task<IActionResult> Details(int id)
         {
-            var centers = await _context.Centers.GetAllAsync();
-            ViewData["Centers"] = centers.ToList();
+            if (!IsAdmin() && !IsDoctor())
+                return AccessDenied();
 
-            var matches = await _context.Matches.GetAllAsync();
-            ViewData["Matches"] = matches.ToList();
+            ViewData["Title"] = "تفاصيل تقرير الزيارة";
+            var report = await _context.VisitReports
+                .GetByIdAsync(id);
+            if (report == null) return NotFound();
+
+            var match = await _context.Matches
+                .GetByIdAsync(report.MatchId);
+            ViewBag.Match = match;
+
+            if (match != null)
+            {
+                var user = await _context.Users
+                    .GetByIdAsync(match.UserId);
+                ViewBag.PatientName = user?.FullName ?? "—";
+
+                var device = await _context.Prostheses
+                    .GetByIdAsync(match.DeviceId);
+                ViewBag.DeviceName = device?.LimbType ?? "—";
+                ViewBag.MatchPercentage = match.MatchPercentage;
+                ViewBag.MatchStatus = match.Status;
+            }
+
+            var center = await _context.Centers
+                .GetByIdAsync(report.CenterId);
+            ViewBag.CenterName = center?.CenterName ?? "—";
+
+            return View(report);
         }
     }
 }

@@ -1,124 +1,289 @@
 ﻿@model IEnumerable<Da3m.Domain.VisitReport>
 @{
     ViewData["Title"] = "تقارير الزيارات";
-    
-    var role = ViewBag.CurrentRole as string ?? "";
-    bool isDoctor = role.ToLower() == "doctor" || role == "طبيب";
-    
+
+    var matchesDict = ViewData["MatchesDict"]
+        as Dictionary<int, Da3m.Domain.Match>
+        ?? new Dictionary<int, Da3m.Domain.Match>();
+
+    var usersDict = ViewData["UsersDict"]
+        as Dictionary<int, string>
+        ?? new Dictionary<int, string>();
+
+    var centersDict = ViewData["CentersDict"]
+        as Dictionary<int, string>
+        ?? new Dictionary<int, string>();
+
+    var devicesDict = ViewData["DevicesDict"]
+        as Dictionary<int, string>
+        ?? new Dictionary<int, string>();
+
     bool isAdmin = ViewBag.CurrentRole?.ToString()
                        .ToLower() == "admin"
                 || ViewBag.CurrentRole?.ToString() == "مدير";
 
-    var centersDict = ViewData["CentersDict"]
-                      as Dictionary<int, string>;
-    var matchesDict = ViewData["MatchesDict"]
-                      as Dictionary<int, string>;
+    bool isDoctor = ViewBag.CurrentRole?.ToString()
+                        .ToLower() == "doctor"
+                 || ViewBag.CurrentRole?.ToString() == "طبيب";
 }
 
-<div class="page-header d-flex justify-content-between align-items-center">
+<div class="page-header d-flex justify-content-between
+             align-items-center">
     <div>
         <h2>
-            <i class="bi bi-file-medical-fill me-2"></i>
+            <i class="bi bi-file-medical-fill me-2"
+               style="color:#1565C0"></i>
             تقارير الزيارات
         </h2>
-        <p>سجل جميع زيارات المرضى للمراكز</p>
+        <p>سجل الزيارات الطبية للمرضى</p>
     </div>
-    @if(isDoctor || isAdmin){
-    <a asp-action="Create" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> إضافة تقرير
-    </a>
+    @if (isAdmin || isDoctor)
+    {
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>
+            إضافة تقرير
+        </a>
     }
 </div>
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show">
-        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+    <div class="alert alert-success
+                 alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>
+        @TempData["Success"]
         <button type="button" class="btn-close"
                 data-bs-dismiss="alert"></button>
     </div>
 }
 
-@if (Model == null || !Model.Any())
+<!-- إحصائية -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#E3F2FD">
+                <i class="bi bi-file-medical-fill"
+                   style="color:#1565C0"></i>
+            </div>
+            <div class="stat-num">
+                @(ViewBag.TotalReports ?? 0)
+            </div>
+            <div class="stat-label">إجمالي التقارير</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#E8F5E9">
+                <i class="bi bi-calendar-check"
+                   style="color:#2E7D32"></i>
+            </div>
+            <div class="stat-num">
+                @Model.Count(r =>
+                    r.ReportDate.Month == DateTime.Now.Month &&
+                    r.ReportDate.Year  == DateTime.Now.Year)
+            </div>
+            <div class="stat-label">تقارير هذا الشهر</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="stat-icon mx-auto mb-2"
+                 style="background:#F3E5F5">
+                <i class="bi bi-people"
+                   style="color:#6A1B9A"></i>
+            </div>
+            <div class="stat-num">
+                @Model.Select(r => {
+                    if (matchesDict.ContainsKey(r.MatchId))
+                        return matchesDict[r.MatchId].UserId;
+                    return 0;
+                }).Distinct().Count(id => id > 0)
+            </div>
+            <div class="stat-label">مرضى تمت زيارتهم</div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
 {
     <div class="alert alert-info">
         <i class="bi bi-info-circle me-2"></i>
-        لا توجد تقارير زيارات مسجلة حالياً
+        لا توجد تقارير مسجلة حالياً
     </div>
 }
 else
 {
     <div class="da3m-table">
-        <table class="table table-hover">
+        <table class="table table-hover mb-0">
             <thead>
                 <tr>
                     <th>#</th>
-                    @* <th>المريض</th> *@
-                    <th>المطابقة</th>
+                    <th>المريض</th>
+<th>الجهاز التعويضي</th>
+                    <th>نسبة المطابقة</th>
                     <th>المركز</th>
-                    <th>ملاحظات الطبيب</th>
-                    <th>ملاحظات المريض</th>
-                    <th>تاريخ الزيارة</th>
+                    <th>التاريخ</th>
                     <th>الإجراءات</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (Da3m.Domain.VisitReport report in Model)
+                @foreach (Da3m.Domain.VisitReport r in Model)
                 {
-                    var cName = "—";
-                    var mName = "—";
+                    // ✅ جيب بيانات المطابقة
+                    Da3m.Domain.Match? match = null;
+                    if (matchesDict.ContainsKey(r.MatchId))
+                        match = matchesDict[r.MatchId];
 
-                    if (centersDict != null &&
-                        centersDict.ContainsKey(report.CenterId))
-                        cName = centersDict[report.CenterId];
+                    string patientName = "—";
+                    string deviceName  = "—";
+                    decimal pct        = 0;
+                    string status      = "—";
 
-                    if (matchesDict != null &&
-                        matchesDict.ContainsKey(report.MatchId))
-                        mName = matchesDict[report.MatchId];
+                    if (match != null)
+                    {
+                        patientName = usersDict
+                            .ContainsKey(match.UserId)
+                            ? usersDict[match.UserId] : "—";
+
+                        deviceName = devicesDict
+                            .ContainsKey(match.DeviceId)
+                            ? devicesDict[match.DeviceId] : "—";
+
+                        pct    = match.MatchPercentage;
+                        status = match.Status ?? "—";
+                    }
+
+                    string centerName = centersDict
+                        .ContainsKey(r.CenterId)
+                        ? centersDict[r.CenterId] : "—";
+
+                    string pctColor = pct >= 99 ? "#1B5E20"
+                                    : pct >= 85 ? "#2E7D32"
+                                    : pct >= 70 ? "#E65100"
+                                    : "#C62828";
+                    string pctBg    = pct >= 99 ? "#E8F5E9"
+                                    : pct >= 85 ? "#F9FBE7"
+                                    : pct >= 70 ? "#FFF3E0"
+                                    : "#FFEBEE";
 
                     <tr>
-                        <td>@report.ReportId</td>
+                        <td style="font-size:.82rem;
+                                   color:#7a8999">
+                            #@r.ReportId
+                        </td>
+
+                        <!-- المريض -->
+                        <td>
+                            <div class="d-flex
+                                         align-items-center gap-2">
+                                <div class="user-avatar"
+                                     style="width:30px;height:30px;
+                                            font-size:.78rem;
+                                            background:#FCE4EC">
+                                    <span style="color:#AD1457">
+                                        @patientName.Substring(0, 1)
+                                    </span>
+                                </div>
+                                <span class="fw-bold"
+                                      style="font-size:.88rem">
+                                    @patientName
+                                </span>
+                            </div>
+                        </td>
+
+                        <!-- الجهاز -->
                         <td>
                             <span class="badge-status"
-                                  style="background:#E0F7FA;
-                                color:#00838F">
-                                <i class="bi bi-shuffle me-1"></i>
-                                @mName
+                                  style="background:#F3E5F5;
+                                         color:#6A1B9A;
+                                         font-size:.78rem">
+                                <i class="bi bi-robot me-1"></i>
+                                @deviceName
                             </span>
                         </td>
+
+                        <!-- نسبة المطابقة -->
                         <td>
-                            <span class="badge-status"
-                                  style="background:#E3F2FD;
-                                color:#1565C0">
-                                <i class="bi bi-hospital me-1"></i>
-                                @cName
-                            </span>
+                            @if (pct > 0)
+                            {
+                                <div class="d-flex
+                                             align-items-center gap-2">
+                                    <div style="flex:1;height:6px;
+                                        background:#ECEFF1;
+                                        border-radius:3px;
+                                        min-width:60px">
+                                        <div style="width:@pct%;
+                                            height:100%;
+                                            background:@pctColor;
+                                            border-radius:3px">
+                                        </div>
+                                    </div>
+                                    <span class="badge-status"
+                                          style="background:@pctBg;
+                                        color:@pctColor;
+                                        font-size:.75rem;
+                                        white-space:nowrap">
+                                        @pct%
+                                    </span>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
                         </td>
-                        <td>@(report.DoctorNotes ?? "—")</td>
-                        <td>@(report.PatientFeedback ?? "—")</td>
-                        <td>
-                            @report.ReportDate.ToString("yyyy/MM/dd")
+
+                        <!-- المركز -->
+                        <td style="font-size:.85rem">
+                            <i class="bi bi-hospital me-1"
+                               style="color:#2E7D32"></i>
+                            @centerName
                         </td>
+
+                        <!-- التاريخ -->
+                        <td style="font-size:.82rem;
+                            color:#7a8999">
+                            @r.ReportDate.ToString("yyyy/MM/dd")
+                        </td>
+
+                        <!-- الإجراءات -->
                         <td>
                             <div class="d-flex gap-1">
-                                <a asp-action="Edit"
-                                       asp-route-id="@report.ReportId"
-                                       class="btn btn-sm btn-outline-warning"
-                                       title="تعديل">
-                                    <i class="bi bi-pencil"></i>
+                                <a asp-action="Details"
+                                   asp-route-id="@r.ReportId"
+                                   class="btn btn-sm
+                                    btn-outline-info"
+                                   title="تفاصيل">
+                                    <i class="bi bi-eye"></i>
                                 </a>
-                                <form asp-action="Delete"
-                                      asp-route-id="@report.ReportId"
-                                      method="post"
-                                      style="display:inline"
-                                      onsubmit="return confirm(
-                                    'هل أنت متأكد من الحذف؟')">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit"
-                                            class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                                @if (isAdmin || isDoctor)
+                                {
+                                    <a asp-action="Edit"
+                                       asp-route-id="@r.ReportId"
+                                       class="btn btn-sm
+                                        btn-outline-warning"
+                                       title="تعديل">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                }
+                                @if (isAdmin)
+                                {
+                                    <form asp-action="Delete"
+                                          asp-route-id="@r.ReportId"
+                                          method="post"
+                                          style="display:inline"
+                                          onsubmit="return confirm(
+                                        'هل أنت متأكد؟')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="btn btn-sm
+                                            btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                }
                             </div>
                         </td>
                     </tr>

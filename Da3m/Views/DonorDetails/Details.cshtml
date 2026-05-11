@@ -1,42 +1,226 @@
 ﻿@model Da3m.Domain.DonorDetail
-
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "تفاصيل المتبرع";
+
+    var donations = ViewBag.Donations
+        as List<Da3m.Domain.Donation>
+        ?? new List<Da3m.Domain.Donation>();
+
+    decimal totalAmount = (decimal)(ViewBag.TotalAmount ?? 0m);
+    int donationsCount = (int)(ViewBag.DonationsCount ?? 0);
+    int devicesCount = (int)(ViewBag.DevicesCount ?? 0);
 }
 
-<h1>Details</h1>
-
-<div>
-    <h4>DonorDetail</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PreferredDonationType)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PreferredDonationType)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TotalDonatedAmount)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TotalDonatedAmount)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DonatedDevicesCount)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DonatedDevicesCount)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.User)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.User.Email)
-        </dd>
-    </dl>
+<div class="page-header d-flex justify-content-between
+    align-items-center">
+    <div>
+        <h2>
+            <i class="bi bi-gift-fill me-2"
+               style="color:#E65100"></i>
+            تفاصيل المتبرع
+        </h2>
+        <p>سجل تبرعات كامل</p>
+    </div>
+    <a asp-action="Index"
+       class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-right me-1"></i> رجوع
+    </a>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.UserId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<div class="row g-3">
+
+    <!-- بطاقة المتبرع -->
+    <div class="col-md-4">
+        <div class="da3m-table p-4 text-center">
+
+            <div class="user-avatar mx-auto mb-3"
+                 style="width:80px;height:80px;
+                font-size:2rem;
+                background:linear-gradient(
+                135deg,#E65100,#AD1457)">
+                @(ViewBag.UserName?.ToString().Substring(0, 1) ?? "م")
+            </div>
+
+            <h5 class="fw-bold mb-1">
+                @ViewBag.UserName
+            </h5>
+            <span class="badge-status d-inline-block mb-1"
+                  style="background:#FFF3E0;
+                color:#E65100">
+                <i class="bi bi-gift me-1"></i>
+                متبرع
+            </span>
+
+            @if (Model.PreferredDonationType != null)
+            {
+                <div class="mt-1">
+                    <span class="badge-status"
+                          style="background:#FCE4EC;
+                        color:#AD1457;
+                        font-size:.78rem">
+                        <i class="bi bi-heart me-1"></i>
+                        @Model.PreferredDonationType
+                    </span>
+                </div>
+            }
+
+            <hr />
+
+            <!-- بيانات التواصل -->
+            <div class="text-start">
+                <div class="mb-2">
+                    <div class="text-muted"
+                         style="font-size:.78rem">
+                        <i class="bi bi-envelope me-1"></i>
+                        البريد
+                    </div>
+                    <div class="fw-bold"
+                         style="font-size:.85rem">
+                        @ViewBag.UserEmail
+                    </div>
+                </div>
+                <div>
+                    <div class="text-muted"
+                         style="font-size:.78rem">
+                        <i class="bi bi-phone me-1"></i>
+                        الهاتف
+                    </div>
+                    <div class="fw-bold"
+                         style="font-size:.85rem">
+                        @ViewBag.UserPhone
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            <!-- إحصائيات -->
+            <div class="row g-2">
+                <div class="col-6">
+                    <div class="p-2 rounded"
+                         style="background:#E8F5E9">
+                        <div class="fw-bold"
+                             style="color:#2E7D32;
+                            font-size:1.2rem">
+                            $@totalAmount.ToString("N0")
+                        </div>
+                        <div style="font-size:.7rem;
+                            color:#7a8999">
+                            إجمالي
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-2 rounded"
+                    style="background:#E3F2FD">
+                        <div class="fw-bold"
+                             style="color:#1565C0;
+                                    font-size:1.2rem">
+                            @donationsCount
+                        </div>
+                        <div style="font-size:.7rem;
+                                    color:#7a8999">
+                            تبرع
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="p-2 rounded"
+                         style="background:#F3E5F5">
+                        <div class="fw-bold"
+                             style="color:#6A1B9A;
+                                    font-size:1.2rem">
+                            @devicesCount
+                        </div>
+                        <div style="font-size:.7rem;
+                                    color:#7a8999">
+                            جهاز تعويضي
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- سجل التبرعات -->
+    <div class="col-md-8">
+        <div class="da3m-table">
+            <div class="p-3 border-bottom d-flex
+                         justify-content-between
+                         align-items-center">
+                <h6 class="fw-bold mb-0"
+                    style="color:#2E7D32">
+                    <i class="bi bi-clock-history me-1"></i>
+                    سجل التبرعات
+                </h6>
+                <span class="badge-status"
+                      style="background:#E8F5E9;
+                             color:#2E7D32">
+                    @donationsCount تبرع
+                </span>
+            </div>
+
+            @if (!donations.Any())
+            {
+                <div class="p-4 text-center
+                             text-muted">
+                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                    لا توجد تبرعات مسجلة
+                </div>
+            }
+            else
+            {
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>المبلغ</th>
+                            <th>التاريخ</th>
+                            <th>ملاحظة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (Da3m.Domain.Donation d
+                            in donations)
+                        {
+                            <tr>
+                                <td style="font-size:.82rem;
+                                           color:#7a8999">
+                                    #@d.DonationId
+                                </td>
+                                <td>
+                                    <span class="fw-bold"
+                                          style="color:#2E7D32;
+                                                 font-size:1rem">
+                                        $@d.Amount.ToString("N2")
+                                    </span>
+                                </td>
+                                <td style="font-size:.85rem">
+                                    @d.DonationDate.ToString("yyyy/MM/dd")
+                                </td>
+                                <td style="font-size:.82rem;
+                                           color:#7a8999">
+                                    @(d.Note ?? "—")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr style="background:#E8F5E9">
+                            <td colspan="1"
+                                class="fw-bold">
+                                الإجمالي
+                            </td>
+                            <td class="fw-bold"
+                                style="color:#2E7D32;
+                                font-size:1rem">
+                                $@totalAmount.ToString("N2")
+                            </td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            }
+        </div>
+    </div>
 </div>

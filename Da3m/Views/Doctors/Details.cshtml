@@ -1,48 +1,157 @@
 ﻿@model Da3m.Domain.Doctor
-
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "تفاصيل الطبيب";
+    var usersDict = ViewData["UsersDict"]
+                      as Dictionary<int, string>
+                      ?? new Dictionary<int, string>();
+    var centersDict = ViewData["CentersDict"]
+                      as Dictionary<int, string>
+                      ?? new Dictionary<int, string>();
+
+    var uName = usersDict.ContainsKey(Model.UserId)
+        ? usersDict[Model.UserId] : "—";
+    var cName = Model.CenterId.HasValue &&
+        centersDict.ContainsKey(Model.CenterId.Value)
+        ? centersDict[Model.CenterId.Value] : "—";
 }
 
-<h1>Details</h1>
-
-<div>
-    <h4>Doctor</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Specialty)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Specialty)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LicenseNumber)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LicenseNumber)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HospitalName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HospitalName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Center)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Center.CenterName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.User)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.User.Email)
-        </dd>
-    </dl>
+<div class="page-header d-flex justify-content-between
+    align-items-center">
+    <div>
+        <h2>
+            <i class="bi bi-person-badge-fill me-2"></i>
+            تفاصيل الطبيب
+        </h2>
+        <p>بيانات الطبيب المسجل في المنصة</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index"
+               class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-right me-1"></i> رجوع
+        </a>
+        @if (ViewBag.CurrentRole?.ToString().ToLower() == "admin"
+                  || ViewBag.CurrentRole?.ToString() == "مدير")
+        {
+            <a asp-action="Edit"
+                   asp-route-id="@Model.UserId"
+                   class="btn btn-warning">
+                <i class="bi bi-pencil me-1"></i> تعديل
+            </a>
+        }
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.UserId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<div class="row g-3">
+    <!-- بطاقة المعلومات الأساسية -->
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="user-avatar mx-auto mb-3"
+                 style="width:70px;height:70px;
+                font-size:1.8rem;
+                background:linear-gradient(
+                135deg,#1565C0,#00ACC1)">
+                @uName.Substring(0, 1)
+            </div>
+            <h5 class="fw-bold mb-1">@uName</h5>
+            <span class="badge-status"
+                  style="background:#E8F5E9;color:#2E7D32">
+                <i class="bi bi-person-badge me-1"></i>
+                طبيب
+            </span>
+
+            <hr class="my-3" />
+
+            <div class="text-start">
+                <div class="mb-2">
+                    <span class="text-muted"
+                          style="font-size:.8rem">
+                        المركز
+                    </span>
+                    <div class="fw-bold">
+                        <i class="bi bi-hospital me-1"
+                           style="color:#1565C0"></i>
+                        @cName
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- بطاقة التفاصيل الطبية -->
+    <div class="col-md-8">
+        <div class="da3m-table p-4">
+            <h6 class="fw-bold mb-4" style="color:#1565C0">
+                <i class="bi bi-clipboard-pulse me-1"></i>
+                البيانات الطبية
+            </h6>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="p-3 rounded"
+                         style="background:#F8F9FA">
+                        <div class="text-muted mb-1"
+                             style="font-size:.8rem">
+                            التخصص
+                        </div>
+                        <div class="fw-bold">
+                            @if (Model.Specialty != null)
+                            {
+                                <span class="badge-status"
+                                      style="background:#E8F5E9;
+                                    color:#2E7D32">
+                                    <i class="bi bi-heart-pulse me-1"></i>
+                                    @Model.Specialty
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 rounded"
+                         style="background:#F8F9FA">
+                        <div class="text-muted mb-1"
+                             style="font-size:.8rem">
+                            رقم الترخيص
+                        </div>
+                        <div class="fw-bold">
+                            @(Model.LicenseNumber ?? "—")
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="p-3 rounded"
+                         style="background:#F8F9FA">
+                        <div class="text-muted mb-1"
+                             style="font-size:.8rem">
+                            المستشفى
+                        </div>
+                        <div class="fw-bold">
+                            <i class="bi bi-building me-1"
+                               style="color:#7a8999"></i>
+                            @(Model.HospitalName ?? "—")
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 rounded"
+                         style="background:#F8F9FA">
+                        <div class="text-muted mb-1"
+                             style="font-size:.8rem">
+                            المركز المرتبط
+                        </div>
+                        <div class="fw-bold">
+                            <i class="bi bi-hospital me-1"
+                               style="color:#1565C0"></i>
+                            @cName
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

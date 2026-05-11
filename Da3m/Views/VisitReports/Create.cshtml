@@ -1,44 +1,42 @@
-﻿@model Da3m.Domain.VisitReport
-@{
+﻿@{
     ViewData["Title"] = "إضافة تقرير زيارة";
 
     var patients = ViewData["Patients"]
         as IEnumerable<Da3m.Domain.User>
         ?? new List<Da3m.Domain.User>();
 
-    var matches = ViewData["Matches"]
-        as IEnumerable<Da3m.Domain.Match>
-        ?? new List<Da3m.Domain.Match>();
-
     var centers = ViewData["Centers"]
         as IEnumerable<Da3m.Domain.Center>
         ?? new List<Da3m.Domain.Center>();
 
-  
-
     int selPatient = (int)(ViewBag.SelectedPatientId ?? 0);
+
+    var matchesList = ViewBag.MatchesList as dynamic
+        ?? new List<object>();
 }
+
 <div class="page-header">
     <h2>
         <i class="bi bi-file-medical me-2"></i>
         إضافة تقرير زيارة
     </h2>
-    <p>سجّل تقرير زيارة المريض للمركز</p>
+    <p>سجّل زيارة طبية للمريض</p>
 </div>
 
-<div class="da3m-table p-4" style="max-width:650px">
+<div class="da3m-table p-4" style="max-width:680px">
     <form asp-action="Create" method="post">
         @Html.AntiForgeryToken()
 
-        <!-- ✅ الخطوة 1 — اختر المريض -->
-        <div class="mb-3">
+        <!-- الخطوة 1 — المريض -->
+        <div class="mb-4">
             <label class="form-label fw-bold">
                 <span class="badge-status me-1"
                       style="background:#E3F2FD;
-                color:#1565C0">1</span>
+                             color:#1565C0">1</span>
                 اختر المريض
             </label>
-            <select name="patientId" class="form-select"
+            <select name="patientId"
+                    class="form-select"
                     onchange="this.form.submit()">
                 <option value="">-- اختر المريض --</option>
                 @foreach (Da3m.Domain.User u in patients)
@@ -59,33 +57,32 @@
             </select>
         </div>
 
-        <!-- ✅ الخطوة 2 — اختر المطابقة (بعد اختيار المريض) -->
         @if (selPatient > 0)
         {
-            <div class="mb-3">
-                <label asp-for="MatchId"
-                       class="form-label fw-bold">
+            <!-- الخطوة 2 — المطابقة -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">
                     <span class="badge-status me-1"
                           style="background:#E3F2FD;
-                    color:#1565C0">2</span>
+                                 color:#1565C0">2</span>
                     اختر المطابقة
                 </label>
-
-                @if (matches.Any())
+                @if (matchesList != null &&
+                    ((IEnumerable<dynamic>)matchesList).Any())
                 {
-                    <select asp-for="MatchId"
-                            class="form-select">
+                    <select name="MatchId" class="form-select"
+                            required>
                         <option value="">
                             -- اختر المطابقة --
                         </option>
-                        @foreach (Da3m.Domain.Match m in matches)
+                        @foreach (var m in
+                            (IEnumerable<dynamic>)matchesList)
                         {
                             <option value="@m.MatchId">
-                                @* @m.User.PatientDetail *@
-                                مطابقة #@m.MatchId —
+                                جهاز: @m.DeviceName —
                                 @m.MatchPercentage% —
                                 @m.Status —
-                                @m.MatchDate.ToString("yyyy/MM/dd")
+                                @m.Date
                             </option>
                         }
                     </select>
@@ -97,84 +94,79 @@
                         لا توجد مطابقات لهذا المريض
                     </div>
                 }
-
-                <span asp-validation-for="MatchId"
-                      class="text-danger small"></span>
             </div>
 
-            <!-- ✅ الخطوة 3 — المركز -->
-            <div class="mb-3">
-                <label asp-for="CenterId"
-                       class="form-label fw-bold">
+            <!-- الخطوة 3 — المركز -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">
                     <span class="badge-status me-1"
                           style="background:#E3F2FD;
-                    color:#1565C0">3</span>
+                                 color:#1565C0">3</span>
                     المركز
                 </label>
-                <select asp-for="CenterId"
-                        class="form-select">
+                <select name="CenterId" class="form-select"
+                        required>
                     <option value="">-- اختر المركز --</option>
                     @foreach (Da3m.Domain.Center c in centers)
                     {
                         <option value="@c.CenterId">
-                            @c.CenterName — @c.LocationText
+                            @c.CenterName
                         </option>
                     }
                 </select>
-                <span asp-validation-for="CenterId"
-                      class="text-danger small"></span>
             </div>
-
-            <!-- ✅ الخطوة 4 — الملاحظات -->
-            <div class="mb-3">
-                <label asp-for="DoctorNotes"
-                       class="form-label fw-bold">
+            <!-- الخطوة 4 — ملاحظات الطبيب -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">
                     <span class="badge-status me-1"
                           style="background:#E3F2FD;
                     color:#1565C0">4</span>
                     ملاحظات الطبيب
                 </label>
-                <textarea asp-for="DoctorNotes"
+                <textarea name="DoctorNotes"
+                          class="form-control" rows="4"
+                          placeholder="أدخل ملاحظاتك الطبية...">
+                </textarea>
+            </div>
+
+            <!-- الخطوة 5 — ملاحظات المريض -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">
+                    <span class="badge-status me-1"
+                          style="background:#F3E5F5;
+                    color:#6A1B9A">5</span>
+                    ملاحظات المريض (اختياري)
+                </label>
+                <textarea name="PatientFeedback"
                           class="form-control" rows="3"
-                              placeholder="أدخل ملاحظات الطبيب...">
+                          placeholder="ملاحظات المريض...">
                 </textarea>
-                </div>
+            </div>
 
-                <div class="mb-4">
-                    <label asp-for="PatientFeedback"
-                           class="form-label fw-bold">
-                        ملاحظات المريض
-                    </label>
-                    <textarea asp-for="PatientFeedback"
-                              class="form-control" rows="3"
-                                  placeholder="أدخل ملاحظات المريض...">
-                </textarea>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button type="submit" name="action"
-                                value="save"
-                                class="btn btn-primary">
-                            <i class="bi bi-check-lg me-1"></i>
-                            حفظ التقرير
-                        </button>
-                        <a asp-action="Index"
-                               class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-right me-1"></i>
-                            رجوع
-                        </a>
-                    </div>
-                }
+            <div class="d-flex gap-2">
+                <button type="submit" name="action"
+                        value="save"
+                        class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i>
+                    حفظ التقرير
+                </button>
+                <a asp-action="Index"
+                   class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-right me-1"></i>
+                    رجوع
+                </a>
+            </div>
+        }
         else
-                {
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-2"></i>
-                        اختر المريض أولاً لعرض مطابقاته
-                    </div>
-                    <a asp-action="Index"
-                           class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-right me-1"></i> رجوع
-                    </a>
-                }
-            </form>
-        </div>
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                اختر المريض أولاً لعرض مطابقاته
+            </div>
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-right me-1"></i> رجوع
+            </a>
+        }
+    </form>
+</div>

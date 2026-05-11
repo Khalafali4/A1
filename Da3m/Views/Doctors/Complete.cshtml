@@ -1,0 +1,175 @@
+﻿@model Da3m.Domain.Doctor
+@{
+    ViewData["Title"] = "إكمال بيانات الطبيب";
+    Layout = null;
+    var centers = ViewBag.Centers
+        as IEnumerable<Da3m.Domain.Center>
+        ?? new List<Da3m.Domain.Center>();
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+    <title>دعم — إكمال البيانات</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap"
+          rel="stylesheet" />
+    <style>
+        * { font-family: 'Cairo', sans-serif; }
+        body {
+            background: linear-gradient(
+                135deg, #0D47A1, #1565C0, #00ACC1);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .complete-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.2);
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #E0E7EF;
+            font-family: 'Cairo', sans-serif;
+            padding: 11px 16px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #1565C0;
+            box-shadow: 0 0 0 3px rgba(21,101,192,.1);
+        }
+        .btn-complete {
+            background: linear-gradient(
+                135deg, #1565C0, #00ACC1);
+            border: none;
+            border-radius: 10px;
+            padding: 13px;
+            font-weight: 700;
+            color: white;
+            width: 100%;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="complete-card">
+    <div class="text-center mb-4">
+        <div style="width:60px;height:60px;
+                    background:linear-gradient(
+                        135deg,#1565C0,#00ACC1);
+                    border-radius:15px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:1.6rem;
+                    color:white;
+                    margin:0 auto 16px">
+            <i class="bi bi-person-badge"></i>
+        </div>
+        <h4 class="fw-bold" style="color:#1565C0">
+            إكمال بيانات الطبيب
+        </h4>
+        <p class="text-muted" style="font-size:.88rem">
+            أدخل بياناتك المهنية للمتابعة
+        </p>
+
+        <!-- شريط التقدم -->
+        <div class="d-flex align-items-center
+                     justify-content-center gap-2 mb-2">
+            <div class="rounded-circle d-flex
+                         align-items-center
+                         justify-content-center"
+                 style="width:32px;height:32px;
+                        background:#E8F5E9;
+                        color:#2E7D32;font-weight:700">
+                ✓
+            </div>
+            <div style="flex:1;height:3px;
+                        background:#E8F5E9"></div>
+            <div class="rounded-circle d-flex
+                         align-items-center
+                         justify-content-center"
+                 style="width:32px;height:32px;
+                        background:#1565C0;
+                        color:white;font-weight:700">
+                2
+            </div>
+        </div>
+        <div class="d-flex justify-content-between"
+             style="font-size:.72rem;color:#7a8999">
+            <span>إنشاء الحساب ✓</span>
+            <span style="color:#1565C0;font-weight:700">
+                إكمال البيانات
+            </span>
+        </div>
+    </div>
+    <form asp-action="Complete" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="UserId"
+               value="@ViewBag.DoctorUserId" />
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                التخصص الطبي
+            </label>
+            <input asp-for="Specialty"
+                   class="form-control"
+                   placeholder="مثال: جراح عظام، طب تأهيلي"
+                   required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                رقم الترخيص الطبي
+            </label>
+            <input asp-for="LicenseNumber"
+                   class="form-control"
+                   placeholder="أدخل رقم ترخيصك" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                اسم المستشفى / العيادة
+            </label>
+            <input asp-for="HospitalName"
+                   class="form-control"
+                   placeholder="أدخل اسم المستشفى" />
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label fw-bold">
+                المركز المرتبط
+            </label>
+            <select asp-for="CenterId"
+                    class="form-select">
+                <option value="">
+                    -- اختر المركز (اختياري) --
+                </option>
+                @foreach (var c in centers)
+                {
+                    <option value="@c.CenterId">
+                        @c.CenterName
+                    </option>
+                }
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-complete">
+            <i class="bi bi-check-lg me-2"></i>
+            إكمال التسجيل والدخول
+        </button>
+    </form>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -19,7 +19,7 @@ namespace Da3m.Domain
 
         [Column(TypeName = "datetime")]
         public DateTime DonationDate { get; set; }
-        public bool IsDeletd { get; set; } = false;
+        public bool IsDeleted { get; set; } = false;
 
         [MaxLength(200)]
         public string? Note { get; set; }
